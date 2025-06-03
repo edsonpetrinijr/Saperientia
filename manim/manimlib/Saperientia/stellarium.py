@@ -58,7 +58,7 @@ def color_index_to_hex(bv_index):
     return rgb_to_hex(rgb)
 
 
-def extract_star_data(file_path='hygdata_v41.csv'):
+def extract_star_data(file_path='sorted_hygdata_v41.csv'):
     stars = []
 
     try:
@@ -67,7 +67,7 @@ def extract_star_data(file_path='hygdata_v41.csv'):
         print(f"File not found: {file_path}")
         return []
 
-    for _, row in df.iterrows():
+    for _, row in df.head(6000).iterrows():
         try:
             dec = float(row['dec'])
             ra = float(row['ra']) * 15  # RA convertido de horas para graus
