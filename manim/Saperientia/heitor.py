@@ -297,4 +297,3 @@ class Terra(ThreeDScene):
         # self.play(self.frame.animate.reorient(120,90,-113,p1*1.0001,0.000001),run_time=5,rate_func=linear)
         # self.play(self.frame.animate.reorient(120,270,-67,p1*1.0001,0.000001),run_time=5,rate_func=linear)
         self.embed()
-
