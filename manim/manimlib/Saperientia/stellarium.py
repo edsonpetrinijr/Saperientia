@@ -105,7 +105,6 @@ def extract_star_data(file_path='hygdata_v41.csv'):
         size = distance * 70 * np.exp(-0.4 * mag) # Ajuste de escala para visualização
 
         stars.append((x, y, z, size, color))
-
     return stars
 
 

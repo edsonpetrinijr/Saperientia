@@ -55,7 +55,7 @@ class EsferaCeleste(Sphere):
         **kwargs: Argumentos adicionais para a classe Sphere.
 
     """
-    def __init__(self, raio=CELESTIAL_DEFAULT_RAIO, cor=BLUE, resolucao=(80, 40), opacidade=0.3, **kwargs):
+    def __init__(self, raio=CELESTIAL_DEFAULT_RAIO, cor=BLUE, resolucao=(80, 80), opacidade=0.3, **kwargs):
         # Chama o construtor da classe pai (Sphere)
         super().__init__(radius=raio, resolution=resolucao, **kwargs)
         
@@ -1090,3 +1090,40 @@ class Earth(TexturedSurface):
                  night_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/The_earth_at_night.jpg/1280px-The_earth_at_night.jpg"):
         sphere = Sphere(radius=radius)
         super().__init__(sphere, day_texture, night_texture)
+class Clouds(TexturedSurface):
+    def __init__(self, radius=DEFAULT_EARTH_RADIUS+0.08,
+                 day_texture="https://www.nicepng.com/png/full/120-1200066_earth-clouds-png-banner-library-library-earth-clouds.png",
+                 night_texture="https://www.nicepng.com/png/full/120-1200066_earth-clouds-png-banner-library-library-earth-clouds.png"):
+        sphere = Sphere(radius=radius).set_shading(0,0,0)
+        super().__init__(sphere, day_texture, night_texture)
+        
+        
+        
+#ADD
+
+class PlanoRetangular(Surface):
+    """
+    Representa um plano retangular no plano XY, utilizando a classe Surface do ManimGL.
+
+    Parâmetros:
+        largura (float, opcional): Tamanho no eixo X. Padrão é 4.
+        altura (float, opcional): Tamanho no eixo Y. Padrão é 4.
+        cor (Color, opcional): Cor do plano. Padrão é BLUE.
+        opacidade (float, opcional): Opacidade do plano. Padrão é 1.
+        resolucao (tuple, opcional): Resolução da malha da superfície. Padrão é (20, 20).
+        **kwargs: Argumentos adicionais para a classe Surface.
+    """
+    def __init__(self, largura=10, altura=10, cor=BLUE, opacidade=1, resolucao=(20, 20), **kwargs):
+        self.largura = largura
+        self.altura = altura
+        super().__init__(
+            u_range=[-largura / 2, largura / 2],
+            v_range=[-altura / 2, altura / 2],
+            resolution=resolucao,
+            color=cor,
+            **kwargs
+        )
+        self.set_opacity(opacidade)
+
+    def uv_func(self, u, v):
+        return np.array([u, v, 0])
