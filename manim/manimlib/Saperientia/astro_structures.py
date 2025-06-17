@@ -32,6 +32,7 @@ def angulo_diedro_de_vetores_cartesianos(A, B, V):
     # Converter para graus
     return np.degrees(C)
 
+VMOBJECT = True
 
 #ELEMENTOS BÁSICOS
 class EsferaCeleste(Sphere):
@@ -67,7 +68,7 @@ class EsferaCeleste(Sphere):
 
         # Configura o contorno da esfera (stroke) com cor, largura e opacidade especificados
 
-class SuperficieObservador(Surface):
+class SuperficieObservador(Disk3D):
     """
     Representa a superfície de observação como um disco plano no plano XY, 
     utilizando a classe Surface do Manim.
@@ -80,24 +81,12 @@ class SuperficieObservador(Surface):
         **kwargs: Argumentos adicionais para a classe Surface.
 
     """
-    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN,resolucao=(50,50),opacidade=1, **kwargs):
+    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN,resolucao=(4,100),opacidade=1, **kwargs):
         self.raio = raio
-        super().__init__(
-            u_range=[0, TAU],
-            v_range=[0, 1],
-            color=cor,
-            resolution=resolucao,
-            **kwargs
-        )
+        super().__init__(resolution=resolucao, radius=raio,**kwargs)
+        self.set_color(cor)
         self.set_opacity(opacidade)
-
-    def uv_func(self, u, v):
-        return np.array([
-            self.raio * np.cos(u) * v,
-            self.raio * np.sin(u) * v,
-            0
-        ])   
-        
+  
 class PontoAstro(Sphere):
     """
     Representa um ponto na esfera celeste a partir de coordenadas esféricas (altura e azimute),
@@ -114,7 +103,7 @@ class PontoAstro(Sphere):
         **kwargs: Argumentos adicionais para a classe Dot3D.
 
     """
-    def __init__(self, altura, azimute, tamanho=DEFAULT_DOT_RADIUS*0.6, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, center = None, **kwargs):
+    def __init__(self, altura, azimute, tamanho=0.8*ASTRO_SIZE, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, center=None, **kwargs):
         
         # Armazena os atributos do ponto
         self.altura = altura  # Equivalente à latitude esférica
@@ -137,14 +126,14 @@ class PontoAstro(Sphere):
         
         # Chama o construtor da classe pai (Dot3D) para criar o ponto na posição calculada
         super().__init__(radius=self.tamanho, color=self.cor, **kwargs)
-        if center == None:
-            self.move_to(np.array([x, y, z]))
-        else:
+        
+        if center is not None:
             self.move_to(np.array([x, y, z])+center)
-            
+        else:
+            self.move_to(np.array([x, y, z]))
 
 class P(PontoAstro):
-    def __init__(self, altura, azimute, tamanho=DEFAULT_DOT_RADIUS*0.6, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, center =None,**kwargs):
+    def __init__(self, altura, azimute, tamanho=0.8*ASTRO_SIZE, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, center=None, **kwargs):
         super().__init__(altura, azimute, tamanho=tamanho, cor=cor, raio=raio,center=center, **kwargs)
 
 class PontoAstroEquatorial(PontoAstro):
@@ -163,7 +152,7 @@ class PontoAstroEquatorial(PontoAstro):
         **kwargs: Argumentos adicionais para a classe Dot3D.
 
     """
-    def __init__(self, declinacao, ascencao_reta_graus, latitude, TSL_graus=0,  tamanho=DEFAULT_DOT_RADIUS*0.6, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, **kwargs):
+    def __init__(self, declinacao, ascencao_reta_graus, latitude, TSL_graus=0,  tamanho=0.8*ASTRO_SIZE, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, **kwargs):
         
         # Armazena os atributos do ponto
         self.declinacao = declinacao  # Equivalente à latitude esférica
@@ -185,8 +174,10 @@ class PontoAstroEquatorial(PontoAstro):
         self.rotate_about_origin((latitude - 90) * DEGREES, X_AXIS)
 
 class PontoVernal(PontoAstroEquatorial):
-    def __init__(self, latitude, TSL_graus=0,  tamanho=DEFAULT_DOT_RADIUS*0.6, cor=PINK, raio=RENDER_CELESTIAL_SPHERE_RADIUS, **kwargs):
+    def __init__(self, latitude, TSL_graus=0,  tamanho=0.8*ASTRO_SIZE, cor=PINK, raio=RENDER_CELESTIAL_SPHERE_RADIUS, **kwargs):
         super().__init__(0,0,latitude=latitude,TSL_graus=TSL_graus,tamanho=tamanho, cor=cor, raio=raio,**kwargs)
+
+##VMOBJECTS
 
 class GrandeArco(VMobject):
     """
@@ -202,10 +193,10 @@ class GrandeArco(VMobject):
         espessura (float, opcional): Espessura da linha do arco. Padrão é 2.
     
     """
-    def __init__(self, ponto1, ponto2, cor=WHITE, num_pontos=50, center = None, espessura=2):
+    def __init__(self, ponto1, ponto2, cor=WHITE, num_pontos=50, center = None, espessura=LINE_SIZE):
         # Inicializa o objeto como um VGroup (grupo de vetores gráficos do Manim)
         super().__init__()
-        if center==None:
+        if center is None:
             center = ORIGIN
         else:
             center = center
@@ -238,7 +229,7 @@ class GrandeArco(VMobject):
         self.apply_depth_test()
         
 class GrandeCirculo(ParametricCurve):
-    def __init__(self, vetor_normal, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=YELLOW, espessura=4):
+    def __init__(self, vetor_normal, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=YELLOW, espessura=LINE_SIZE):
         """
         Desenha um círculo máximo (grande círculo) em uma esfera dado um vetor normal ao plano do círculo.
         
@@ -249,7 +240,7 @@ class GrandeCirculo(ParametricCurve):
             espessura (float): Espessura do círculo (padrão: 5).
         """
         vetor_normal = vetor_normal / np.linalg.norm(vetor_normal)
-        raio_corrigido = raio + 0.02
+        raio_corrigido = raio 
         # Círculo base no plano XY
         def circulo_base(t):
             return raio_corrigido * np.array([np.cos(t), np.sin(t), 0])
@@ -276,7 +267,7 @@ class GrandeCirculo(ParametricCurve):
         # Adiciona a função à instância da classe
 
 class Paralelo(VMobject):
-    def __init__(self, altitude, latitude=0, raio=RENDER_CELESTIAL_SPHERE_RADIUS, num_pontos=400, cor=BLUE_C):
+    def __init__(self, altitude, latitude=0, raio=RENDER_CELESTIAL_SPHERE_RADIUS, num_pontos=400, espessura=LINE_SIZE, cor=BLUE_C):
         """
         Desenha um círculo paralelo (de latitude) em uma esfera com o raio fornecido.
 
@@ -307,7 +298,7 @@ class Paralelo(VMobject):
             pontos_círculo.append(np.array([x, y, z]))
 
         # Criar o círculo como um VMobject
-        self.set_points_as_corners(pontos_círculo).set_color(cor)
+        self.set_width(espessura).set_points_as_corners(pontos_círculo).set_color(cor)
         
         # Adicionar o círculo ao VGroup
         if latitude != 0:
@@ -315,7 +306,7 @@ class Paralelo(VMobject):
         self.apply_depth_test()
 
 class ArcoParalelo(Paralelo):
-    def __init__(self, altitude, angulo_inicial, angulo_final, raio=RENDER_CELESTIAL_SPHERE_RADIUS, num_pontos=50, cor=WHITE):
+    def __init__(self, altitude, angulo_inicial, angulo_final, raio=RENDER_CELESTIAL_SPHERE_RADIUS, num_pontos=50,espessura=LINE_SIZE, cor=WHITE):
         """
         Desenha um arco de círculo paralelo (de latitude) em uma esfera com o raio fornecido.
 
@@ -344,10 +335,10 @@ class ArcoParalelo(Paralelo):
             pontos_arco.append(np.array([x, y, z]))
 
         # Criar o arco como um VMobject
-        self.set_points_as_corners(pontos_arco).set_color(cor)
+        self.set_points_as_corners(pontos_arco).set_color(cor).set_width(espessura)
         
 class MeridianoLocal(Arc):
-    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, espessura=3, cor=ORANGE, opacidade=1, **kwargs):
+    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, espessura=LINE_SIZE, cor=ORANGE, opacidade=1, **kwargs):
         """
         Cria um meridiano local como um arco de círculo maior.
 
@@ -369,6 +360,214 @@ class MeridianoLocal(Arc):
         self.apply_depth_test()
  
  
+##claude mobject
+if not VMOBJECT:
+
+    class GrandeArco(Mobject):
+        """
+        Representa um grande arco esférico entre dois pontos em uma esfera,
+        utilizando interpolação esférica (Slerp) para gerar uma curva suave.
+
+        Parâmetros:
+            ponto1 (Dot3D): Primeiro ponto do arco.
+            ponto2 (Dot3D): Segundo ponto do arco.
+            raio (float, opcional): Raio da esfera sobre a qual o arco será traçado. Padrão é 2.
+            cor (Color, opcional): Cor do arco. Padrão é WHITE.
+            num_pontos (int, opcional): Número de pontos para interpolação do arco. Padrão é 50.
+            espessura (float, opcional): Espessura da linha do arco. Padrão é 2.
+        
+        """
+        def __init__(self, ponto1, ponto2, cor=WHITE, num_pontos=50, center=None, espessura=LINE_SIZE):
+            super().__init__()
+            
+            if center is None:
+                center = ORIGIN
+            else:
+                center = center
+                
+            # Obtém as coordenadas cartesianas dos pontos na esfera
+            inicio = ponto1.get_center() - center
+            fim = ponto2.get_center() - center
+            
+            # Verifica se os pontos são iguais; se forem, não há arco a ser desenhado
+            if np.allclose(inicio, fim):
+                return
+            
+            # Calcula o ângulo entre os vetores que representam os pontos na esfera
+            angulo = np.arccos(np.dot(inicio, fim) / (np.linalg.norm(inicio) * np.linalg.norm(fim)))
+            
+            # Lista para armazenar os pontos do arco interpolado
+            pontos_arco = []
+            
+            # Gera pontos intermediários ao longo do arco usando interpolação esférica (Slerp)
+            for t in range(num_pontos + 1):
+                ponto_slerp = (
+                    np.sin((1 - t / num_pontos) * angulo) * inicio +
+                    np.sin((t / num_pontos) * angulo) * fim
+                ) / np.sin(angulo) + center
+                pontos_arco.append(ponto_slerp)
+            
+            # Cria uma linha poligonal conectando os pontos do arco usando VMobject
+            if len(pontos_arco) > 1:
+                # Cria um VMobject com os pontos
+                arco_vmobject = VMobject()
+                arco_vmobject.set_points_as_corners(pontos_arco)
+                arco_vmobject.set_color(cor)
+                arco_vmobject.set_stroke(width=espessura)
+                self.add(arco_vmobject)
+            self.apply_depth_test()
+            
+    class GrandeCirculo(Mobject):
+        def __init__(self, vetor_normal, raio=CELESTIAL_SPHERE_RADIUS, cor=YELLOW, espessura=1.2*LINE_SIZE):
+            """
+            Desenha um círculo máximo (grande círculo) em uma esfera dado um vetor normal ao plano do círculo.
+            
+            Parâmetros:
+                vetor_normal (np.array): Vetor unitário 3D normal ao plano do grande círculo.
+                raio (float): Raio da esfera (padrão: 2).
+                cor (Color): Cor do grande círculo (padrão: YELLOW).
+                espessura (float): Espessura do círculo (padrão: 5).
+            """
+            super().__init__()
+            
+            # Normaliza o vetor normal
+            vetor_normal = vetor_normal / np.linalg.norm(vetor_normal)
+            raio_corrigido = raio 
+            
+            # Círculo base no plano XY usando ParametricCurve
+            def circulo_base(t):
+                return raio_corrigido * np.array([np.cos(t), np.sin(t), 0])
+            
+            circulo = ParametricCurve(
+                lambda t: circulo_base(t),
+                t_range=[0, TAU, 0.2]
+            )
+            circulo.set_color(cor)
+            circulo.set_stroke(width=espessura)
+            
+            # Calcula o ângulo de rotação entre o vetor [0, 0, 1] e o vetor normal
+            z_axis = np.array([0, 0, 1])
+            if not np.allclose(vetor_normal, z_axis):
+                angle = np.arccos(np.dot(z_axis, vetor_normal))
+                axis_of_rotation = np.cross(z_axis, vetor_normal)
+                if np.linalg.norm(axis_of_rotation) > 1e-10:  # Evita divisão por zero
+                    axis_of_rotation = axis_of_rotation / np.linalg.norm(axis_of_rotation)
+                    circulo.rotate(angle, axis_of_rotation)
+            
+            self.add(circulo)
+            self.apply_depth_test()
+
+    class Paralelo(Mobject):
+        def __init__(self, altitude, latitude=0, raio=CELESTIAL_SPHERE_RADIUS, num_pontos=400, espessura=LINE_SIZE, cor=BLUE_C):
+            """
+            Desenha um círculo paralelo (de latitude) em uma esfera com o raio fornecido.
+
+            Parâmetros:
+                raio (float): Raio da esfera.
+                altitude (float): altitude fixa (em graus) onde o círculo será desenhado.
+                latitude (float): Latitude do lugar (Padrão = 0)
+                num_pontos (int): Número de pontos para desenhar o círculo.
+                cor (color): Cor do círculo.
+            """
+            super().__init__()
+
+            # Converter latitude de graus para radianos
+            latitude_rad = np.radians(altitude)
+
+            # Gerar pontos ao longo do círculo de latitude variando a longitude (theta)
+            pontos_círculo = []
+            for theta in np.linspace(0, 2 * np.pi, num_pontos):
+                # A posição no círculo em coordenadas cartesianas
+                x = raio * np.cos(latitude_rad) * np.cos(theta)
+                y = raio * np.cos(latitude_rad) * np.sin(theta)
+                z = raio * np.sin(latitude_rad)
+                pontos_círculo.append(np.array([x, y, z]))
+
+            # Criar o círculo como um VMobject
+            if len(pontos_círculo) > 1:
+                circulo_vmobject = VMobject()
+                circulo_vmobject.set_points_as_corners(pontos_círculo)
+                circulo_vmobject.set_color(cor)
+                circulo_vmobject.set_stroke(width=espessura)
+                
+                # Aplicar rotação se necessário
+                if latitude != 0:
+                    circulo_vmobject.rotate_about_origin((latitude - 90) * DEGREES, X_AXIS)
+                
+                self.add(circulo_vmobject)
+            self.apply_depth_test()
+
+    class ArcoParalelo(Mobject):
+        def __init__(self, altitude, angulo_inicial, angulo_final, raio=CELESTIAL_SPHERE_RADIUS, num_pontos=50,espessura=LINE_SIZE, cor=WHITE):
+            """
+            Desenha um arco de círculo paralelo (de latitude) em uma esfera com o raio fornecido.
+
+            Parâmetros:
+                altitude (float): Latitude fixa (em graus) onde o arco será desenhado.
+                angulo_inicial (float): Azimute inicial do arco (em graus).
+                angulo_final (float): Azimute final do arco (em graus).
+                raio (float): Raio da esfera.
+                num_pontos (int): Número de pontos para desenhar o arco.
+                cor (color): Cor do arco.
+            """
+            super().__init__()
+            
+            angulo_inicio = 90 - angulo_inicial
+            angulo_fim = 90 - angulo_final
+            
+            # Converter graus para radianos
+            latitude_rad = np.radians(altitude)
+            angulo_inicio_rad = np.radians(angulo_inicio)
+            angulo_fim_rad = np.radians(angulo_fim)
+
+            # Gerar pontos apenas no intervalo especificado
+            pontos_arco = []
+            for theta in np.linspace(angulo_inicio_rad, angulo_fim_rad, num_pontos):
+                x = raio * np.cos(latitude_rad) * np.cos(theta)
+                y = raio * np.cos(latitude_rad) * np.sin(theta)
+                z = raio * np.sin(latitude_rad)
+                pontos_arco.append(np.array([x, y, z]))
+
+            # Criar o arco como um VMobject
+            if len(pontos_arco) > 1:
+                arco_vmobject = VMobject()
+                arco_vmobject.set_points_as_corners(pontos_arco)
+                arco_vmobject.set_color(cor)
+                self.add(arco_vmobject)
+            self.apply_depth_test()
+            self.set_width(espessura)
+
+    class MeridianoLocal(Mobject):
+        def __init__(self, raio=CELESTIAL_SPHERE_RADIUS, espessura=LINE_SIZE, cor=ORANGE, opacidade=1, **kwargs):
+            """
+            Cria um meridiano local como um arco de círculo maior.
+
+            raio: Raio do arco (padrão: 2)
+            espessura: Largura da linha do arco (padrão: 3)
+            cor: Cor do arco (padrão: ORANGE)
+            opacidade: Transparência do arco (padrão: 1)
+            """
+            super().__init__()
+            
+            # Criar um arco semicircular usando Arc
+            arco = Arc(
+                arc_center=ORIGIN, 
+                radius=raio, 
+                start_angle=PI/2,  # Começa no topo
+                angle=-PI,         # Desce até embaixo passando pela frente
+                **kwargs
+            )
+            
+            # Rotacionar o arco para a orientação correta
+            arco.rotate(-90*DEGREES, Y_AXIS, about_point=ORIGIN)
+            arco.set_color(cor)
+            arco.set_stroke(width=espessura, opacity=opacidade)
+            
+            self.add(arco)
+            self.apply_depth_test()
+
+
+
 #DEPENDENTE DO OBSERVADOR
 class EixoPolar(Line3D):
     """
@@ -382,7 +581,7 @@ class EixoPolar(Line3D):
         cor (Color): Cor dos segmentos de linha (padrão: RED).
         granularidade_3d (int): Número de segmentos para aumentar a suavidade (padrão: 20).
     """
-    def __init__(self, latitude_graus, comprimento=2*RENDER_CELESTIAL_SPHERE_RADIUS, phi=PI / 2, espessura=0.03, cor=RED):
+    def __init__(self, latitude_graus, comprimento=2*RENDER_CELESTIAL_SPHERE_RADIUS, phi=PI / 2, espessura=0.03*ELEMENTS_SCALE, cor=RED):
 
         # Converte latitude de graus para radianos
         latitude = np.radians(latitude_graus)
@@ -423,7 +622,7 @@ class Equador(GrandeCirculo):
         super().__init__(vetor_normal=vetor_normal, raio=raio, cor=cor)
 
 class Grade(VGroup):
-    def __init__(self, latitude=90, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor_dec=GREY_A,cor_ar=GREY_A, opacidade=0.8,espessura=2, n_ar=24,**kwargs):
+    def __init__(self, latitude=90, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor_dec=GREY_A,cor_ar=GREY_A, opacidade=0.8,espessura=0.5*LINE_SIZE, n_ar=24,**kwargs):
         super().__init__(**kwargs)
         self.raio = raio
         paralelos = VGroup()
@@ -454,7 +653,7 @@ class Grade(VGroup):
         self.apply_depth_test()
 
 class GradeMesh(SurfaceMesh):
-    def __init__(self, latitude=90,raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=BLUE_C, n_dec=19,n_ra=25, opacidade=0.5, espessura=2,**kwargs):
+    def __init__(self, latitude=90,raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=BLUE_C, n_dec=19,n_ra=25, opacidade=0.5, espessura=0.5*LINE_SIZE,**kwargs):
         self.raio = raio
 
         def uv_func(u, v):
@@ -538,7 +737,7 @@ class AnguloEsferico(VGroup):
         
         """
         
-        if center == None:
+        if center.all() == None:
             center = ORIGIN
         else:
             center = center
@@ -1087,18 +1286,23 @@ class Sun(Group):
         self.sun_surface.set_shading(*shading)
         
 class Earth(TexturedSurface):
-    def __init__(self, radius=RENDER_EARTH_RADIUS,
+    def __init__(self, radius=RENDER_EARTH_RADIUS, clouds=True,
                  day_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Whole_world_-_land_and_oceans.jpg/1280px-Whole_world_-_land_and_oceans.jpg",
                  night_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/The_earth_at_night.jpg/1280px-The_earth_at_night.jpg"):
         sphere = Sphere(radius=radius)
         super().__init__(sphere, day_texture, night_texture)
+        if clouds:
+            nuvem = Clouds(RENDER_EARTH_RADIUS*1.02)
+            nuvem.add_updater(lambda n,dt:n.rotate(0.1*dt,OUT))
+            self.add(nuvem)
 
 class Clouds(TexturedSurface):
-    def __init__(self, radius=RENDER_EARTH_RADIUS+0.08,
+    def __init__(self, radius=RENDER_EARTH_RADIUS*1.02,
                  day_texture="https://www.nicepng.com/png/full/120-1200066_earth-clouds-png-banner-library-library-earth-clouds.png",
                  night_texture="https://www.nicepng.com/png/full/120-1200066_earth-clouds-png-banner-library-library-earth-clouds.png"):
-        sphere = Sphere(radius=radius).set_shading(0,0,0).set_opacity(0.2)
+        sphere = Sphere(radius=radius)
         super().__init__(sphere, day_texture, night_texture)
+        self.set_shading(0,0,0).set_opacity(0.2)
         
         
         
