@@ -81,11 +81,28 @@ class SuperficieObservador(Disk3D):
         **kwargs: Argumentos adicionais para a classe Surface.
 
     """
-    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN,resolucao=(4,100),opacidade=1, **kwargs):
+    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN,resolucao=(100,100),opacidade=1, **kwargs):
         self.raio = raio
         super().__init__(resolution=resolucao, radius=raio,**kwargs)
         self.set_color(cor)
         self.set_opacity(opacidade)
+
+class SuperficieObservador(Surface):
+    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN,resolucao=(50,50),opacidade=1, **kwargs):
+        self.raio = raio
+        super().__init__(
+            u_range=[0, TAU],
+            v_range=[0, 1],
+            color=cor,
+            resolution=resolucao,
+            **kwargs
+        ) 
+    def uv_func(self, u, v):
+        return np.array([
+            self.raio * np.cos(u) * v,
+            self.raio * np.sin(u) * v,
+            0
+        ]) 
   
 class PontoAstro(Sphere):
     """
@@ -164,7 +181,7 @@ class PontoAstroEquatorial(PontoAstro):
 
         # Converte a altura e a longitude para radianos
          # Ângulo polar (90° - altura para alinhar com a convenção esférica)
-        phi = self.ascencao_reta + TSL_graus + 180  # Ângulo azimutal
+        phi = -self.ascencao_reta + TSL_graus + 180  # Ângulo azimutal
         
         # Converte as coordenadas esféricas para coordenadas cartesianas
         
@@ -723,7 +740,7 @@ class CirculoTangente(Polygon):
         self.apply_depth_test()
 
 class AnguloEsferico(VGroup):
-    def __init__(self, p: VMobject, p1: VMobject, p2: VMobject, raio_circulo=0.3, cor=WHITE, math_label = None, cor_do_texto=WHITE, label_distance=1,tamanho_da_fonte=30, num_pontos=30, center=None,espessura=2):
+    def __init__(self, p: VMobject, p1: VMobject, p2: VMobject, raio_circulo=0.3*ELEMENTS_SCALE, cor=WHITE, math_label = None,reducing_factor = 50, cor_do_texto=WHITE, label_distance=1,tamanho_da_fonte=30, num_pontos=30, center=None,espessura=2):
         """
         Desenha um arco de cÃ­rculo tangente Ã  esfera no ponto 'p'.
         
@@ -737,7 +754,7 @@ class AnguloEsferico(VGroup):
         
         """
         
-        if center.all() == None:
+        if center is None:
             center = ORIGIN
         else:
             center = center
@@ -753,7 +770,7 @@ class AnguloEsferico(VGroup):
         self.p2 = p2
         p1_pos = self.p1.get_center() - center
         p2_pos = self.p2.get_center() - center
-        normal_vector = p_pos / np.linalg.norm(p_pos)  # Vetor normal ao plano tangente
+        normal_vector = p_pos  # Vetor normal ao plano tangente
 
         # Criar dois vetores tangentes ao plano
         vetor_qualquer = np.array(p1_pos/np.linalg.norm(p1_pos))
@@ -769,7 +786,7 @@ class AnguloEsferico(VGroup):
         self._valor_angulo = float(np.round(np.degrees(self.angulo_final),2))
         # Gerar pontos do arco
         pontos_arco = [
-            center + 1.01*p_pos + raio_circulo * (np.cos(angulo) * -vetor_tangente2 + np.sin(angulo) * -vetor_tangente1) - normal_vector / 30
+            center + 1.01*p_pos + raio_circulo * (np.cos(angulo) * -vetor_tangente2 + np.sin(angulo) * -vetor_tangente1) - normal_vector / reducing_factor
             for angulo in np.linspace(np.radians(0), self.angulo_final, num_pontos)
         ]
         super().__init__()
@@ -888,16 +905,117 @@ class RegiaoMeridional(Surface):
             return np.array([x, y, z])
 
 class LinhaVMobject(VMobject):
-            def __init__(self, ponto_inicial, ponto_final, cor=WHITE, espessura=2, **kwargs):
-                super().__init__(**kwargs)
-                self.set_points_as_corners([ponto_inicial,(ponto_inicial+ponto_final)/2, ponto_final])
-                self.set_color(cor)
-                self.set_stroke(width=espessura)
+    def __init__(self, ponto_inicial, ponto_final, cor=WHITE, espessura=2, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.set_points_as_corners([ponto_inicial, ponto_final])
+        self.set_color(cor)
+        self.set_stroke(width=espessura)
+
+class Seta(Arrow):
+    def __init__(self, ponto, angulo: float, comprimento=0.5, cor=WHITE, espessura=2):
+        """
+        Cria uma seta tangente à superfície de uma esfera no ponto 'ponto', inclinada de um ângulo dado
+        em relação à direção zenital (eixo Z positivo).
+
+        Parâmetros:
+            ponto (Dot3D): O ponto na superfície da esfera onde a seta se origina.
+            angulo (float): O ângulo em relação à direção norte (em radianos).
+            comprimento (float): Comprimento da seta (padrão: 0.5).
+            cor (Color): Cor da seta (padrão: WHITE).
+            espessura (float): Espessura da seta (padrão: 2).
+        """
+        # Obter a posição do ponto
+        p_pos = ponto.get_center()
+
+        # O vetor radial do ponto (do centro da esfera ao ponto 'p')
+        vetor_radial = p_pos / np.linalg.norm(p_pos)
+
+        # Gerando um sistema de coordenadas ortogonal
+        vetor_qualquer = np.array([0, 0, 1])
+        vetor_tangente1 = np.cross(vetor_radial, vetor_qualquer)
+        vetor_tangente1 /= np.linalg.norm(vetor_tangente1)
+        
+        vetor_tangente2 = np.cross(vetor_radial, vetor_tangente1)
+        vetor_tangente2 /= np.linalg.norm(vetor_tangente2)
+        
+        # Criar o vetor da seta inclinada do ângulo dado
+        direcao_seta = np.cos(np.radians(angulo)) * -vetor_tangente2 + np.sin(np.radians(angulo)) * vetor_tangente1
+        direcao_seta *= comprimento  # Ajusta o comprimento
+
+        # Ponto final da seta
+        ponto_final = p_pos + direcao_seta
+        
+        # Criando a seta com Arrow
+        super().__init__(start=p_pos, end=ponto_final, color=cor, stroke_width=espessura, buff=0)
+
+class SetaGrandeCirculo(Seta):
+    def __init__(self, ponto, grande_circulo: VGroup, comprimento=0.5, cor=WHITE, espessura=2, inverter=False, granularidade=100):
+        """
+        Cria uma seta tangente à superfície da esfera no ponto 'ponto', apontando na direção do grande círculo.
+
+        Parâmetros:
+            ponto (Dot3D): O ponto na superfície da esfera onde a seta se origina.
+            grande_circulo (VGroup): O grande círculo que define a direção da seta.
+            comprimento (float): Comprimento da seta (padrão: 0.5).
+            cor (Color): Cor da seta (padrão: WHITE).
+            espessura (float): Espessura da seta (padrão: 2).
+            inverter (bool): Se True, inverte a direção da seta (padrão: False).
+            granularidade (int): Define a precisão na busca do ponto mais próximo (padrão: 100).
+        """
+        # Obter a posição do ponto na esfera
+        p_pos = ponto.get_center()
+
+        # Coletar os pontos de todos os componentes do VGroup
+        pontos_circulo = np.vstack([obj.points for obj in grande_circulo if hasattr(obj, "points") and len(obj.points) > 0])
+
+        # Verificar se conseguimos pontos válidos
+        if len(pontos_circulo) == 0:
+            raise ValueError("O grande círculo (VGroup) não contém pontos!")
+
+        # Reduzindo a quantidade de pontos para melhorar o desempenho
+        pontos_circulo = pontos_circulo[:: max(1, len(pontos_circulo) // granularidade)]
+
+        # Encontrar o ponto mais próximo no grande círculo
+        ponto_mais_proximo = min(pontos_circulo, key=lambda pt: np.linalg.norm(pt - p_pos))
+
+        # Encontrar o índice do ponto mais próximo
+        idx_ponto = np.where((pontos_circulo == ponto_mais_proximo).all(axis=1))[0]
+        if len(idx_ponto) == 0:
+            raise ValueError("Não foi possível encontrar o índice do ponto mais próximo!")
+        idx_ponto = idx_ponto[0]
+
+        # Escolher um ponto vizinho para calcular a direção tangente
+        ponto_vizinho = pontos_circulo[(idx_ponto + 1) % len(pontos_circulo)]
+
+        # Vetor tangente ao grande círculo no ponto dado
+        vetor_tangente = ponto_vizinho - ponto_mais_proximo
+
+        # Se o vetor for zero, lançar um erro
+        if np.linalg.norm(vetor_tangente) < 1e-6:
+            raise ValueError("Vetor tangente muito pequeno ou inválido!")
+
+        # Normaliza o vetor
+        vetor_tangente /= np.linalg.norm(vetor_tangente)
+
+        # Inverter a direção da seta se necessário
+        if inverter:
+            vetor_tangente *= -1
+
+        # Criando a seta apontando na direção do grande círculo
+        super().__init__(ponto, angulo=0, comprimento=comprimento, cor=cor, espessura=espessura)
+
+        # Atualizando a direção da seta com o vetor tangente calculado
+        self.put_start_and_end_on(p_pos, p_pos + vetor_tangente * comprimento)
+
+        # Ajustando para melhor renderização 3D
+        self.set_shade_in_3d(True)
+
 
 #MARCADORES
 
 class MarcadorAngulo(VGroup):
-    def __init__(self, ponto1:VMobject, ponto2:VMobject, Origem = None , barra=True, cor_linha=WHITE, espessura_linha=2, cor_arco=WHITE, cor_texto=WHITE, espessura_arco=3, label_2d=False,label_3d=False, math_label_2d=None, math_label_3d=None, label_distance=1, tamanho_da_fonte=20, arco=True, **kwargs):
+    def __init__(self, ponto1:VMobject, ponto2:VMobject,raio_arco=0.5, Origem = None , barra=True, cor_linha=WHITE, espessura_linha=2, cor_arco=WHITE, cor_texto=WHITE, espessura_arco=3, label_2d=False,label_3d=False, math_label_2d=None, math_label_3d=None, label_distance=1, tamanho_da_fonte=20, arco=True, **kwargs):
         """
         Classe que cria um arco marcador de ângulo entre duas linhas radiais que conectam o centro aos pontos.
         
@@ -924,8 +1042,16 @@ class MarcadorAngulo(VGroup):
         else: 
             Origem = Origem.get_center()
         # Obtém as posições dos dois pontos no espaço
-        ponto1_pos = ponto1.get_center()
-        ponto2_pos = ponto2.get_center()
+       
+        
+        if isinstance(ponto1, VMobject)or isinstance(ponto1, P):
+            ponto1_pos = ponto1.get_center()
+        else:
+            ponto1_pos = ponto1
+        if isinstance(ponto2, VMobject)or isinstance(ponto2, P):
+            ponto2_pos = ponto2.get_center()
+        else:
+            ponto2_pos = ponto2
         
         # Cria as duas linhas radiais (do centro aos pontos)
         segmentos_linha1 = LinhaVMobject(Origem,ponto1_pos,cor_linha,espessura_linha)
@@ -950,7 +1076,7 @@ class MarcadorAngulo(VGroup):
 
         num_pontos = 50
         pontos_arco = [
-                Origem + np.cos(angulo) * linha1_vector / np.linalg.norm(linha1_vector) * 0.5 + np.sin(angulo) * -produto_vetorial2 / np.linalg.norm(produto_vetorial2) * 0.5
+                Origem + np.cos(angulo) * linha1_vector / np.linalg.norm(linha1_vector) * 0.5 *raio_arco + np.sin(angulo) * -produto_vetorial2 / np.linalg.norm(produto_vetorial2) * 0.5*raio_arco
                 for angulo in np.linspace(np.radians(0), angulo, num_pontos)
             ]
             
@@ -965,11 +1091,11 @@ class MarcadorAngulo(VGroup):
             texto = Tex(fr"{np.round(np.degrees(angulo),2)}^\circ", font_size = tamanho_da_fonte).move_to(label_distance*1.7*arco.get_center_of_mass()).set_color(cor_texto)
             self.add(texto)
         if math_label_2d != None:
-            texto = Tex(fr"{math_label_2d}", font_size = tamanho_da_fonte).move_to(label_distance*1.7*arco.get_center_of_mass()).set_color(cor_texto)
+            texto = Tex(fr"{math_label_2d}", font_size = tamanho_da_fonte).move_to(label_distance*1.7*arco.get_center()).set_color(cor_texto)
             texto.rotate(PI/2, X_AXIS).rotate(PI/2, Z_AXIS)
             self.add(texto)
         if math_label_3d != None:
-            texto = Tex(fr"{math_label_3d}", font_size = tamanho_da_fonte).move_to(label_distance*1.7*arco.get_center_of_mass()).set_color(cor_texto)
+            texto = Tex(fr"{math_label_3d}", font_size = tamanho_da_fonte).move_to(label_distance*1.7*arco.get_center()).set_color(cor_texto)
             self.add(texto)
             
       
@@ -1202,6 +1328,7 @@ class SegmentoAstro(LinhaVMobject):
         super().__init__(ponto_final=ponto_pos, ponto_inicial=ORIGEM,espessura=espessura,cor=cor,**kwargs)
 
 
+
 #Objetos 
 
 class Moon(TexturedSurface):
@@ -1210,7 +1337,21 @@ class Moon(TexturedSurface):
         radius=RENDER_MOON_RADIUS,
         resolution=(101, 51),
         texture="https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Moon_texture.jpg/2560px-Moon_texture.jpg",
-        dark_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Black_Wallpaper.jpg/1200px-Black_Wallpaper.jpg",
+        dark_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Black_colour.jpg/1536px-Black_colour.jpg",
+        shading=(0.25, 0.25, 1),
+        **kwargs
+    ):
+        sphere = Sphere(radius=radius, resolution=resolution)
+        super().__init__(sphere, texture, dark_texture, **kwargs)
+        self.set_shading(*shading)
+
+class Mars(TexturedSurface):
+    def __init__(
+        self,
+        radius=RENDER_MARS_RADIUS,
+        resolution=(101, 51),
+        texture="https://upload.wikimedia.org/wikipedia/commons/7/70/Solarsystemscope_texture_8k_mars.jpg",
+        dark_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Black_colour.jpg/1536px-Black_colour.jpg",
         shading=(0.25, 0.25, 1),
         **kwargs
     ):
@@ -1291,8 +1432,10 @@ class Earth(TexturedSurface):
                  night_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/The_earth_at_night.jpg/1280px-The_earth_at_night.jpg"):
         sphere = Sphere(radius=radius)
         super().__init__(sphere, day_texture, night_texture)
+        self.rotate(PI/2, Z_AXIS)
+        
         if clouds:
-            nuvem = Clouds(RENDER_EARTH_RADIUS*1.02)
+            nuvem = Clouds(radius*1.02)
             nuvem.add_updater(lambda n,dt:n.rotate(0.1*dt,OUT))
             self.add(nuvem)
 

@@ -1,3 +1,6 @@
 camera:
   background_color: "#000000"
   fps: 60
+text:
+  font: "CMU Serif"
+  alignment: "LEFT"

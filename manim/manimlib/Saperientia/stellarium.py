@@ -93,7 +93,7 @@ def extract_star_data(file_path='sorted_hygdata_v41.csv'):
         y = 10000 * row['y']
         z = 10000 * row['z']
 
-        if row['proper'] == 'Altair':
+        if row['proper'] == 'Alnilam':
             print(x, y, z)
         # x = 10 * math.sin(theta) * math.cos(phi)
         # y = 10 * math.sin(theta) * math.sin(phi)
@@ -101,7 +101,6 @@ def extract_star_data(file_path='sorted_hygdata_v41.csv'):
     
         # color = color_index_to_rgb(ci) if not np.isnan(ci) else [1, 1, 1]
 
-        # size = 10 * np.exp(-0.11 * mag)  # Ajuste de escala para visualização
         size = distance * 70 * np.exp(-0.4 * mag) # Ajuste de escala para visualização
 
         stars.append((x, y, z, size, color))
