@@ -2,6 +2,7 @@ from manimlib import *
 from manimlib.Saperientia.astro_structures import * 
 from manimlib.Saperientia.stellarium import * 
 from manimlib.Saperientia.Variables import * 
+from manimlib.Saperientia.camera import * 
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
@@ -799,132 +800,37 @@ class Lua(Scene):
         moon.add_updater(lambda m,dt: m.rotate(dt*-10*DEGREES,axis=OUT,about_point=ORIGIN))
         self.wait(20)
         
-class Christian(Scene):
+
+        
+class Camera(Scene):
     def construct(self):
-        self.frame.reorient(90,45,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*2)
-        esfera_celeste = EsferaCeleste()
-        superficie = SuperficieObservador()
-        Norte = Tex("N",font_size=7).next_to(superficie.get_corner(UP),0.1* UP)
-        Leste = Tex("E",font_size=7).next_to(superficie.get_corner(RIGHT),0.1* RIGHT)
-        Sul = Tex("S",font_size=7).next_to(superficie.get_corner(DOWN),0.1* DOWN)
-        Oeste = Tex("W",font_size=7).next_to(superficie.get_corner(LEFT),0.1* LEFT)
-        self.add(Norte,Leste,Sul,Oeste)
-        self.add(esfera_celeste, superficie)
-        esfera_celeste.add_updater(lambda m: self.add(esfera_celeste))
-    
-        latitude = ValueTracker(-70)
-        eixo = EixoPolar(latitude.get_value())
-        self.embed()
-        #explicação sem animação 
-        
-        #latitude genérica no sul
-        self.play(ShowCreation(eixo))      
-    
-class Episodio1(Scene):
-    def construct(self):
-        self.frame.reorient(0, 0, 0, ORIGIN+[0,0,0.001], 0.0005)
-        # self.camera.frame.set_width(10000)
-        stars_data = extract_star_data()
+        earth = Earth(radius=RENDER_EARTH_RADIUS,clouds=False)
+        self.add(earth)
+        # earth.add_updater(lambda m,dt:m.rotate(dt*0.1,axis=OUT,about_point=ORIGIN))
 
-        stars = Group()
+        # Exemplo: quero “encostar” na origem, mantendo fovy do jeito que está
+        frame = self.camera.frame
 
-        for x, y, z, size, color in stars_data:
-            star = DotCloud(
-                points=[np.array([x, y, z])],
-                color=color,
-                radius=size,
-                opacity=0.75
-            )
-            stars.add(star)
-
-        self.add(stars)
-    
-        sun = Sun()
-        sun.add_updater(lambda m:self.add(sun))
-        earth = Earth(clouds=False).move_to(RENDER_SUN_EARTH_DISTANCE*RIGHT)
-        light = self.camera.light_source
-        moon = Moon()  # Lua ainda menor
-        mars = Mars()  # Lua ainda menor
-
-        self.add(sun,mars)
-        
-        
-
-        # Trackers para os ângulos da Terra e da Lua
-        angle_earth = ValueTracker(0)
-        angle_moon = ValueTracker(0)
-
-        # Atualiza a posição da Terra orbitando o Sol
-        # earth_orbit = always_redraw(lambda: 
-        #     earth.move_to(sun.get_center() + RENDER_SUN_EARTH_DISTANCE * np.array([
-        #         np.cos(angle_earth.get_value()),
-        #         np.sin(angle_earth.get_value()),
-        #         0
-        #     ]))
-        # )
-        mars_orbit = always_redraw(lambda: 
-            mars.move_to(sun.get_center() + RENDER_SUN_MARS_DISTANCE * np.array([
-                np.cos(angle_earth.get_value()),
-                np.sin(angle_earth.get_value()),
-                0
-            ]))
+        # Exemplo: colar na origem, invertendo a direção
+        reorientar_camera(
+            frame,
+            point=ORIGIN,
+            theta_deg=0, phi_deg=90, gamma_deg=0,
         )
-        
-        # Atualiza a posição da Lua orbitando a Terra
-        mars_orbit = always_redraw(lambda: 
-            mars.move_to(sun.get_center() + RENDER_SUN_MARS_DISTANCE * np.array([
-                np.cos(angle_earth.get_value()),
-                np.sin(angle_earth.get_value()) * np.cos(np.radians(23.5)),
-                np.sin(angle_earth.get_value()) * np.sin(np.radians(23.5))
-            ]))
-        )
-        # self.frame.reorient(330,70,0,[53.38888931,  0.        ,  0.        ],15)
-        self.frame.reorient(340,105,0,earth.get_center(),1)
         self.wait(5)
         self.play(
-            angle_earth.animate.increment_value( PI),
-            angle_moon.animate.increment_value(8 * PI),
-            # Rotate(earth,10*TAU,axis=Z_AXIS),
-            run_time=20,
-            rate_func=linear
+            AnimarCamera(
+                frame,
+                point=earth.get_corner(OUT)*1.1,
+                phi_deg=150,
+                run_time=2
+            )
         )
 
-    
-class CenaEsfera(Scene):
+
+
+class NaSuper(Scene):
     def construct(self):
-        self.frame.reorient(0, 80, 0, ORIGIN+[0,0,0.001], 0.05)
-        # self.camera.frame.set_width(10000)
-        stars_data = extract_star_data()
-
-        stars = Group()
-
-        for x, y, z, size, color in stars_data:
-            star = DotCloud(
-                points=[np.array([x, y, z])/np.linalg.norm([x, y, z])*RENDER_CELESTIAL_SPHERE_RADIUS],
-                color=color,
-                radius=0.0007+size/800000000,
-                opacity=1
-            )
-            stars.add(star)
-
-        self.add(stars)
-        esferaceleste = EsferaCeleste(opacidade=0.1)        
-        sun = Sun(radius=0.07*ELEMENTS_SCALE, big_glow_ratio=0.1*RENDER_SUN_RADIUS).move_to(esferaceleste.get_corner(RIGHT))
-        sun.add_updater(lambda m:self.add(sun))
-        self.add(esferaceleste)
-        esferaceleste.add_updater(lambda m:self.add(esferaceleste))
-        earth = Earth(clouds=False).scale(0.2)
-        light = self.camera.light_source
-        moon = Moon().scale(0.1).move_to(esferaceleste.get_corner(LEFT)) # Lua ainda menor
-        mars = Mars().scale(0.1).move_to(esferaceleste.get_corner(UP))  # Lua ainda menor
-        self.add(sun,earth,moon,mars)
-        self.play(self.frame.animate.reorient(180, 80, 0, ORIGIN, 0.05),run_time=5)
-        self.play(self.frame.animate.reorient(90, 80, 0, ORIGIN, 0.5),run_time=5)
-
-class Escala(Scene):
-    def construct(self):
-        self.frame.reorient(0, 0, 0, ORIGIN+[0,0,0.001], 0.0005)
-        # self.camera.frame.set_width(10000)
         stars_data = extract_star_data()
 
         stars = Group()
@@ -937,95 +843,122 @@ class Escala(Scene):
                 opacity=0.75
             )
             stars.add(star)
-
         self.add(stars)
-    
-        sun = Sun()
-        sun.add_updater(lambda m:self.add(sun))
-        earth = Earth(clouds=False).move_to(RENDER_SUN_EARTH_DISTANCE*RIGHT)
-        light = self.camera.light_source
-        moon = Moon()  # Lua ainda menor
-        mars = Mars()  # Lua ainda menor
-
-        self.add(sun,mars,earth,moon)
         
+        earth = Earth(radius=RENDER_EARTH_RADIUS,clouds=False,resolution=(102,50)).rotate(180*DEGREES,axis=OUT,about_point=ORIGIN)
+        self.add(earth)
+       
+        # Exemplo: quero “encostar” na origem, mantendo fovy do jeito que está
+        frame = self.camera.frame
+
+        # Exemplo: colar na origem, invertendo a direção
+
+  
+        p = P(0,0,raio=RENDER_EARTH_RADIUS)
+        angle = ValueTracker(0)
+        frame.add_updater(lambda m:reorientar_camera(m,np.array([np.sin(angle.get_value()),np.cos(angle.get_value()),0])*RENDER_EARTH_RADIUS*1.0000001,theta_deg=-angle.get_value()/PI*180,phi_deg=-20,fovy=70))
+        self.play(angle.animate.increment_value(-2*PI),Rotate(earth,angle = 2*PI,axis=OUT,rate_func=linear,run_time=30),run_time=30,rate_func=linear)
         
+# Helpers esféricos simples
+def _latlon_to_xyz(lat_deg, lon_deg, R):
+    lat = lat_deg * DEGREES
+    lon = lon_deg * DEGREES
+    x = R * np.cos(lat) * np.cos(lon)
+    y = R * np.cos(lat) * np.sin(lon)
+    z = R * np.sin(lat)
+    return np.array([x, y, z], dtype=float)
 
-        # Trackers para os ângulos da Terra e da Lua
-        angle_earth = ValueTracker(0)
-        angle_moon = ValueTracker(0)
 
 
-        earth_orbit = always_redraw(lambda: 
-            earth.move_to(sun.get_center() + RENDER_SUN_EARTH_DISTANCE * np.array([
-                np.cos(angle_earth.get_value()),
-                np.sin(angle_earth.get_value()),
-                0
-            ]))
-        )
-        
-        # Atualiza a posição da Lua orbitando a Terra
-        moon_orbit = always_redraw(lambda:
-            moon.move_to(earth.get_center() + RENDER_EARTH_MOON_DISTANCE * np.array([
-                np.cos(angle_moon.get_value()),
-                np.sin(angle_moon.get_value()),
-                0
-            ]))
-        )
-        # Atualiza a posição da Lua orbitando a Terra
-        mars_orbit = always_redraw(lambda: 
-            mars.move_to(sun.get_center() + RENDER_SUN_MARS_DISTANCE * np.array([
-                np.cos(angle_earth.get_value()),
-                np.sin(angle_earth.get_value()) * np.cos(np.radians(23.5)),
-                np.sin(angle_earth.get_value()) * np.sin(np.radians(23.5))
-            ]))
-        )
-        # self.frame.reorient(330,70,0,[53.38888931,  0.        ,  0.        ],15)
-        self.frame.reorient(340,105,0,earth.get_center(),1)
-        self.play(self.frame.animate.reorient(270,105,0,earth.get_center(),1),run_time=5)
-        self.play(self.frame.animate.reorient(270, 80, 0, moon.get_center(), 0.5),run_time=3)
-        self.play(self.frame.animate.reorient(90, 80, 0, moon.get_center(), 0.5),run_time=2)
-        self.play(self.frame.animate.reorient(90, 80, 0, sun.get_center(), 20),run_time=2)
-        self.wait(1)
-        self.play(self.frame.animate.reorient(270, 80, 0, mars.get_center(), 1),run_time=2)
-        self.wait(2)
-        self.play(self.frame.animate.reorient(0, 90, 0, mars.get_center(), 1),run_time=2)
-        self.play(self.frame.animate.reorient(0, 91, 0, [627751.2200000001, 6026669.100000001, -127126.83], 1000000),run_time=30,rate_func=smooth)
-
-class CenaEsfera2(Scene):
+class NaSuper2(Scene):
     def construct(self):
-        self.frame.reorient(0, 80, 0, ORIGIN+[0,0,0.001], 0.05)
-        # self.camera.frame.set_width(10000)
         stars_data = extract_star_data()
-
         stars = Group()
-
         for x, y, z, size, color in stars_data:
             star = DotCloud(
-                points=[np.array([x, y, z])/np.linalg.norm([x, y, z])*RENDER_CELESTIAL_SPHERE_RADIUS],
+                points=[np.array([x, y, z])],
                 color=color,
-                radius=0.0007+size/800000000,
-                opacity=1
+                radius=size,
+                opacity=0.75
             )
             stars.add(star)
-
         self.add(stars)
-        esferaceleste = EsferaCeleste(opacidade=0.1)        
-        sun = Sun(radius=0.07*ELEMENTS_SCALE, big_glow_ratio=0.1*RENDER_SUN_RADIUS).move_to(esferaceleste.get_corner(RIGHT))
-        sun.add_updater(lambda m:self.add(sun))
-        self.add(esferaceleste)
-        esferaceleste.add_updater(lambda m:self.add(esferaceleste))
-        earth = Earth(clouds=False).scale(0.2)
-        light = self.camera.light_source
-        moon = Moon().scale(0.1).move_to(esferaceleste.get_corner(LEFT)) # Lua ainda menor
-        mars = Mars().scale(0.1).move_to(esferaceleste.get_corner(UP))  # Lua ainda menor
-        self.add(sun,earth,moon,mars)
-        self.play(self.frame.animate.reorient(180, 80, 0, ORIGIN, 0.05),run_time=5)
-        self.play(self.frame.animate.reorient(120, 50, 0, ORIGIN, 0.03),run_time=3)
-        self.play(self.frame.animate.reorient(-60, 110, 0, ORIGIN, 0.03),run_time=5)
-        self.play(self.frame.animate.reorient(180, 80, 0, ORIGIN, 0.05),run_time=5)
-        self.play(earth.animate.scale(0.01),run_time=2)
-        self.play(self.frame.animate.reorient(90, 80, 0, ORIGIN, 0.5),run_time=5)
-        self.play(self.frame.animate.reorient(180, 80, 0, ORIGIN, 0.5),run_time=5)
-        self.play(self.frame.animate.reorient(180, 80, 0, ORIGIN, 0.05),run_time=5)
-        self.wait(4)
+
+        earth = Earth(
+            radius=RENDER_EARTH_RADIUS,
+            clouds=False,
+            resolution=(102, 50)
+        ).rotate(180*DEGREES, axis=OUT, about_point=ORIGIN)
+        self.add(earth)
+
+        frame = self.camera.frame
+
+        # Latitude alvo em graus. Exemplo São Paulo aproximado
+        lat_deg = ValueTracker(-23.55)  
+        R = RENDER_EARTH_RADIUS
+        alt_factor = 1.0001  # levemente acima da superfície
+
+        # Este ValueTracker governa a longitude. Use radianos como antes
+        angle = ValueTracker(0)
+
+        # Updater para qualquer latitude
+        def camera_updater(mob):
+            # longitude em graus a partir do seu angle em radianos
+            lon_deg = angle.get_value() / PI * 180.0 * (-1.0)  # sinal negativo para casar com sua rotação
+            # posição na superfície
+            point = _latlon_to_xyz(lat_deg.get_value(), lon_deg, R * alt_factor)
+            # ângulos pré flip olhando para o sul
+            th_pre, ph_pre, ga_pre = lon_deg-90 , +lat_deg.get_value()-20 , 0
+            # cola a câmera no ponto e ajusta orientação
+            reorientar_camera(
+                mob,
+                point=point,
+                theta_deg=th_pre,
+                phi_deg=ph_pre,
+                gamma_deg=ga_pre,
+                epsilon=1e-6,
+                fovy=60
+            )
+
+        frame.add_updater(camera_updater)
+
+        # A Terra girando no mesmo sentido e velocidade angular coerente
+        self.play(lat_deg.animate.increment_value(110),run_time=5)
+        self.play(
+            angle.animate.increment_value(-0.5*PI),
+              # passa pelas longitudes conforme antes
+            Rotate(earth, angle=0.5*PI, axis=OUT, rate_func=linear, run_time=10),
+            run_time=10, rate_func=linear
+        )
+        frame.clear_updaters()
+        self.play(frame.animate.reorient(0,70,0,earth.get_corner(OUT)*1.3,RENDER_EARTH_RADIUS*0.02),            
+                  Rotate(earth, angle=0.5*PI, axis=OUT, rate_func=linear, run_time=2),run_time=2,rate_func=linear)
+    
+        self.play(frame.animate.reorient(0,70,0,earth.get_corner(OUT)*1.3,RENDER_EARTH_RADIUS*2),            
+                  Rotate(earth, angle=0.5*PI, axis=OUT, rate_func=linear, run_time=4),run_time=4,rate_func=linear)
+        lon_deg = angle.get_value() / PI * 180.0 * (-1.0)  # sinal negativo para casar com sua rotação
+        # posição na superfície
+        point = _latlon_to_xyz(lat_deg.get_value(), lon_deg, R * alt_factor)
+        # ângulos pré flip olhando para o sul
+        th_pre, ph_pre, ga_pre = lon_deg-90 , +lat_deg.get_value()-20 , 0
+        # cola a câmera no ponto e ajusta orientação
+    
+        self.play(AnimarCamera(frame,point=point,theta_deg=th_pre,phi_deg=90,gamma_deg=ga_pre),run_time=4)
+        self.play(AnimarCamera(frame,point=point,theta_deg=th_pre,phi_deg=ph_pre,gamma_deg=ga_pre),run_time=1)
+        frame.add_updater(camera_updater)
+        self.play(lat_deg.animate.increment_value(-70),run_time=5)
+        self.play(
+            angle.animate.increment_value(-0.5*PI),
+              # passa pelas longitudes conforme antes
+            Rotate(earth, angle=0.5*PI, axis=OUT, rate_func=linear, run_time=10),
+            run_time=10, rate_func=linear
+        )
+        frame.clear_updaters()
+        self.play(
+            Rotate(earth, angle=2*PI, axis=OUT, rate_func=linear, run_time=10),
+            AnimarCamera(frame,point=frame.get_center()*2,phi_deg=-120),
+            run_time=10, rate_func=linear
+        )
+  
+
+        self.wait(0.5)

@@ -1427,10 +1427,10 @@ class Sun(Group):
         self.sun_surface.set_shading(*shading)
         
 class Earth(TexturedSurface):
-    def __init__(self, radius=RENDER_EARTH_RADIUS, clouds=True,
+    def __init__(self, radius=RENDER_EARTH_RADIUS, clouds=True, resolution = (101,51),
                  day_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Whole_world_-_land_and_oceans.jpg/1280px-Whole_world_-_land_and_oceans.jpg",
                  night_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/The_earth_at_night.jpg/1280px-The_earth_at_night.jpg"):
-        sphere = Sphere(radius=radius)
+        sphere = Sphere(radius=radius,resolution=resolution)
         super().__init__(sphere, day_texture, night_texture)
         self.rotate(PI/2, Z_AXIS)
         
