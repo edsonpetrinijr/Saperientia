@@ -4,16 +4,24 @@ from manimlib.Saperientia.Variables import *
 
 def angulo_diedro_de_vetores_cartesianos(A, B, V):
     """
-        Encontra o ângulo diedro com vertice na posição V e os dois planos compostos pelo vértice V, origem e pontos A ou B
-        (Angulo usado na trigonometria esférica como o ângulo interno de um triângulo esférico)
+    O que faz
+    Calcula o ângulo diedro entre dois planos definidos pelo vértice V e os vetores posição de A e B na esfera.
+    Esse ângulo corresponde ao ângulo interno do triângulo esférico no vértice V, útil em trigonometria esférica.
 
-        Parâmetros:
-            A (np.ndarray): Vetor de posição do primeiro ponto na esfera.
-            B (np.ndarray): Vetor de posição do segundo ponto na esfera.
-            V (np.ndarray): Vetor de posição do vértice onde o ângulo será calculado.
+    Como usar
+        C = angulo_diedro_de_vetores_cartesianos(A, B, V)
+    onde A, B e V são arrays NumPy com coordenadas cartesianas. A função normaliza os vetores, aplica a lei dos quatro elementos esférica e retorna o ângulo em graus.
 
-        Retorno:
-            float: O ângulo esférico interno do triângulo esférico, em graus.
+    Parâmetros
+        A np.ndarray Vetor posição do primeiro ponto da esfera.
+        B np.ndarray Vetor posição do segundo ponto da esfera.
+        V np.ndarray Vetor posição do vértice onde o ângulo será calculado.
+
+    Retorno
+        float Ângulo esférico interno no vértice V em graus.
+
+    Observações
+        Os vetores são normalizados internamente e o cosseno é protegido com clamp para estabilidade numérica.
     """
     # Normalizar os vetores posição (caso não estejam normalizados)
     A = A / np.linalg.norm(A)
@@ -37,19 +45,21 @@ VMOBJECT = True
 #ELEMENTOS BÁSICOS
 class EsferaCeleste(Sphere):
     """
-    Representa uma esfera celeste personalizada, estendendo a classe Sphere do Manim.
+    O que faz
+    Cria uma esfera 3D que representa a esfera celeste, servindo como base para posicionar astros, arcos e círculos.
 
-    Parâmetros:
-        raio (float, opcional): Raio da esfera. Padrão é 2.
-        cor (Color, opcional): Cor da esfera. Padrão é BLUE.
-        cor_contorno (Color, opcional): Cor do contorno da esfera. Padrão é BLUE.
-        resolucao (tuple, opcional): Resolução da esfera (quantidade de subdivisões). Padrão é (20, 20).
+    Como usar
+        esfera = EsferaCeleste(raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=BLUE, resolucao=(80, 80), opacidade=0.3)
+
+    Parâmetros
+        raio (float, opcional): Raio da esfera. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        cor (Color, opcional): Cor de preenchimento da esfera. Padrão é BLUE.
+        resolucao (tuple, opcional): Resolução da malha na forma linhas, colunas. Padrão é 80, 80.
         opacidade (float, opcional): Opacidade do preenchimento da esfera. Padrão é 0.3.
-        largura_contorno (float, opcional): Largura do contorno da esfera. Padrão é 3.
-        opacidade_contorno (float, opcional): Opacidade do contorno da esfera. Padrão é 0.
-        tabuleiro_checkered (tuple, opcional): Cores do padrão quadriculado da esfera. Padrão é (BLUE, BLUE).
-        **kwargs: Argumentos adicionais para a classe Sphere.
+        **kwargs: Argumentos adicionais herdados de Sphere.
 
+    Observações
+        A cor e a opacidade são aplicadas ao preenchimento e funcionam bem como pano de fundo para visualizações astronômicas.
     """
     def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=BLUE, resolucao=(80, 80), opacidade=0.3, **kwargs):
         # Chama o construtor da classe pai (Sphere)
@@ -70,16 +80,18 @@ class EsferaCeleste(Sphere):
 
 class SuperficieObservador(Disk3D):
     """
-    Representa a superfície de observação como um disco plano no plano XY, 
-    utilizando a classe Surface do Manim.
+    O que faz
+    Cria um disco horizontal no plano XY que representa a superfície do observador, como um piso ou horizonte.
 
-    Parâmetros:
-        raio (float, opcional): Raio do disco que representa a superfície de observação. Padrão é 2.
-        cor_preenchimento (Color, opcional): Cor do preenchimento da superfície. Padrão é GREEN.
-        opacidade (float, opcional): Opacidade do preenchimento. Padrão é 1 (totalmente visível).
-        resolucao (tuple, opcional): Resolução da malha da superfície. Padrão é (20, 20).
-        **kwargs: Argumentos adicionais para a classe Surface.
+    Como usar
+        piso = SuperficieObservador(raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN, opacidade=1)
 
+    Parâmetros
+        raio (float, opcional): Raio do disco. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        cor (Color, opcional): Cor do disco. Padrão é GREEN.
+        resolucao (tuple, opcional): Resolução da malha do disco. Padrão é 100, 100.
+        opacidade (float, opcional): Opacidade do disco. Padrão é 1.
+        **kwargs: Argumentos adicionais herdados de Disk3D.
     """
     def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN,resolucao=(100,100),opacidade=1, **kwargs):
         self.raio = raio
@@ -88,6 +100,23 @@ class SuperficieObservador(Disk3D):
         self.set_opacity(opacidade)
 
 class SuperficieObservador(Surface):
+    """
+    O que faz
+    Gera uma superfície circular plana no plano XY por parametrização polar, útil para representar a base de referência do observador.
+
+    Como usar
+        piso = SuperficieObservador(raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN, resolucao=(50, 50), opacidade=1)
+
+    Parâmetros
+        raio (float, opcional): Raio do disco paramétrico. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        cor (Color, opcional): Cor do preenchimento. Padrão é GREEN.
+        resolucao (tuple, opcional): Resolução da superfície. Padrão é 50, 50.
+        opacidade (float, opcional): Opacidade do preenchimento. Padrão é 1.
+        **kwargs: Argumentos adicionais herdados de Surface.
+
+    Observações
+        A parametrização define u como ângulo e v como raio adimensional entre zero e um.
+    """
     def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN,resolucao=(50,50),opacidade=1, **kwargs):
         self.raio = raio
         super().__init__(
@@ -106,19 +135,23 @@ class SuperficieObservador(Surface):
   
 class PontoAstro(Sphere):
     """
-    Representa um ponto na esfera celeste a partir de coordenadas esféricas (altura e azimute),
-    herdando da classe Dot3D do Manim.
+    O que faz
+    Cria um ponto na superfície da esfera celeste a partir de altura e azimute, considerando o norte como o eixo Y positivo.
 
-    OBS.: A direção Norte é o vetor espacial [0,1,0]
+    Como usar
+        astro = PontoAstro(altura=30, azimute=120, tamanho=0.05, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS)
 
-    Parâmetros:
-        altura (float): Altura do ponto (equivalente à latitude esférica, em graus, de -90 a +90).
-        azimute (float): Azimute do ponto (equivalente à longitude esférica, em graus, de 0 a 360 partindo do Norte pra direção Leste).
-        tamanho (float, opcional): Raio do ponto 3D. Padrão é DEFAULT_DOT_RADIUS.
+    Parâmetros
+        altura (float, opcional): Latitude esférica em graus entre menos noventa e mais noventa. Padrão é 0.
+        azimute (float, opcional): Longitude esférica em graus entre zero e trezentos e sessenta a partir do norte para o leste. Padrão é 0.
+        tamanho (float, opcional): Raio visual do ponto. Padrão é 0.8 vezes ASTRO_SIZE.
         cor (Color, opcional): Cor do ponto. Padrão é WHITE.
-        raio (float, opcional): Raio da esfera na qual o ponto será posicionado. Padrão é 2.
-        **kwargs: Argumentos adicionais para a classe Dot3D.
+        raio (float, opcional): Raio da esfera de referência para posicionamento. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        center (np.ndarray, opcional): Vetor para deslocar o centro da esfera. Padrão é None.
+        **kwargs: Argumentos adicionais herdados de Sphere.
 
+    Observações
+        Internamente converte para coordenadas cartesianas e posiciona a pequena esfera no local correto da casca esférica.
     """
     def __init__(self, altura, azimute, tamanho=0.8*ASTRO_SIZE, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, center=None, **kwargs):
         
@@ -150,24 +183,39 @@ class PontoAstro(Sphere):
             self.move_to(np.array([x, y, z]))
 
 class P(PontoAstro):
+    """
+    O que faz
+    Fornece um atalho de escrita para PontoAstro com os mesmos parâmetros.
+
+    Como usar
+        p = P(altura=20, azimute=45)
+
+    Parâmetros
+        Iguais aos de PontoAstro.
+    """
     def __init__(self, altura, azimute, tamanho=0.8*ASTRO_SIZE, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, center=None, **kwargs):
         super().__init__(altura, azimute, tamanho=tamanho, cor=cor, raio=raio,center=center, **kwargs)
 
 class PontoAstroEquatorial(PontoAstro):
     """
-    Representa um ponto na esfera celeste a partir de coordenadas esféricas (altura e azimute),
-    herdando da classe Dot3D do Manim.
+    O que faz
+    Posiciona um ponto com coordenadas equatoriais de declinação e ascensão reta, convertido ao referencial local por latitude e tempo sideral local.
 
-    OBS.: A direção Norte é o vetor espacial [0,1,0]
+    Como usar
+        estrela = PontoAstroEquatorial(declinacao=15, ascencao_reta_graus=120, latitude=-23, TSL_graus=30)
 
-    Parâmetros:
-        altura (float): Altura do ponto (equivalente à latitude esférica, em graus, de -90 a +90).
-        azimute (float): Azimute do ponto (equivalente à longitude esférica, em graus, de 0 a 360 partindo do Norte pra direção Leste).
-        tamanho (float, opcional): Raio do ponto 3D. Padrão é DEFAULT_DOT_RADIUS.
+    Parâmetros
+        declinacao (float): Declinação em graus. Padrão é 0.
+        ascencao_reta_graus (float): Ascensão reta em graus. Padrão é 0.
+        latitude (float): Latitude geográfica do observador em graus. Padrão é 0.
+        TSL_graus (float, opcional): Tempo sideral local em graus. Padrão é 0.
+        tamanho (float, opcional): Tamanho do ponto. Padrão é 0.8 vezes ASTRO_SIZE.
         cor (Color, opcional): Cor do ponto. Padrão é WHITE.
-        raio (float, opcional): Raio da esfera na qual o ponto será posicionado. Padrão é 2.
-        **kwargs: Argumentos adicionais para a classe Dot3D.
+        raio (float, opcional): Raio da esfera de referência. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        **kwargs: Argumentos adicionais herdados de PontoAstro.
 
+    Observações
+        Aplica rotação final no eixo X para alinhar a esfera equatorial com a latitude do observador.
     """
     def __init__(self, declinacao, ascencao_reta_graus, latitude, TSL_graus=0,  tamanho=0.8*ASTRO_SIZE, cor=WHITE, raio=RENDER_CELESTIAL_SPHERE_RADIUS, **kwargs):
         
@@ -191,6 +239,21 @@ class PontoAstroEquatorial(PontoAstro):
         self.rotate_about_origin((latitude - 90) * DEGREES, X_AXIS)
 
 class PontoVernal(PontoAstroEquatorial):
+    """
+    O que faz
+    Marca o ponto do equinócio vernal para o observador dado, com declinação zero e ascensão reta zero, ajustado por latitude e tempo sideral local.
+
+    Como usar
+        gamma = PontoVernal(latitude=-23, TSL_graus=15)
+
+    Parâmetros
+        latitude (float, opcional): Latitude do observador em graus. Padrão é 0.
+        TSL_graus (float, opcional): Tempo sideral local em graus. Padrão é 0.
+        tamanho (float, opcional): Tamanho visual do ponto. Padrão é 0.8 vezes ASTRO_SIZE.
+        cor (Color, opcional): Cor do marcador. Padrão é PINK.
+        raio (float, opcional): Raio da esfera de referência. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        **kwargs: Argumentos adicionais herdados de PontoAstroEquatorial.
+    """
     def __init__(self, latitude, TSL_graus=0,  tamanho=0.8*ASTRO_SIZE, cor=PINK, raio=RENDER_CELESTIAL_SPHERE_RADIUS, **kwargs):
         super().__init__(0,0,latitude=latitude,TSL_graus=TSL_graus,tamanho=tamanho, cor=cor, raio=raio,**kwargs)
 
@@ -198,17 +261,19 @@ class PontoVernal(PontoAstroEquatorial):
 
 class GrandeArco(VMobject):
     """
-    Representa um grande arco esférico entre dois pontos em uma esfera,
-    utilizando interpolação esférica (Slerp) para gerar uma curva suave.
+    O que faz
+    Traça o arco de grande círculo entre dois pontos de superfície usando interpolação esférica.
 
-    Parâmetros:
-        ponto1 (Dot3D): Primeiro ponto do arco.
-        ponto2 (Dot3D): Segundo ponto do arco.
-        raio (float, opcional): Raio da esfera sobre a qual o arco será traçado. Padrão é 2.
-        cor (Color, opcional): Cor do arco. Padrão é WHITE.
-        num_pontos (int, opcional): Número de pontos para interpolação do arco. Padrão é 50.
-        espessura (float, opcional): Espessura da linha do arco. Padrão é 2.
-    
+    Como usar
+        arco = GrandeArco(ponto1, ponto2, cor=WHITE, num_pontos=100, center=ORIGIN, espessura=LINE_SIZE)
+
+    Parâmetros
+        ponto1 (VMobject): Primeiro ponto sobre a esfera. Padrão é None.
+        ponto2 (VMobject): Segundo ponto sobre a esfera. Padrão é None.
+        cor (Color, opcional): Cor do traço do arco. Padrão é WHITE.
+        num_pontos (int, opcional): Número de amostras do arco. Padrão é 50.
+        center (np.ndarray, opcional): Centro da esfera caso deslocada. Padrão é ORIGIN.
+        espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
     """
     def __init__(self, ponto1, ponto2, cor=WHITE, num_pontos=50, center = None, espessura=LINE_SIZE):
         # Inicializa o objeto como um VGroup (grupo de vetores gráficos do Manim)
@@ -246,16 +311,23 @@ class GrandeArco(VMobject):
         self.apply_depth_test()
         
 class GrandeCirculo(ParametricCurve):
+    """
+    O que faz
+    Desenha um grande círculo em uma esfera a partir de um vetor normal ao plano do círculo.
+
+    Como usar
+        gc = GrandeCirculo(vetor_normal=np.array([0, 1, 0]), raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=YELLOW, espessura=LINE_SIZE)
+
+    Parâmetros
+        vetor_normal (np.ndarray, opcional): Vetor unitário normal ao plano do círculo. Padrão é vetor unitário em Z.
+        raio (float, opcional): Raio da esfera usada como referência. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        cor (Color, opcional): Cor do traço. Padrão é YELLOW.
+        espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
+
+    Observações
+        O círculo é gerado no plano XY e depois rotacionado para alinhar com a normal desejada.
+    """
     def __init__(self, vetor_normal, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=YELLOW, espessura=LINE_SIZE):
-        """
-        Desenha um círculo máximo (grande círculo) em uma esfera dado um vetor normal ao plano do círculo.
-        
-        Parâmetros:
-            vetor_normal (np.array): Vetor unitário 3D normal ao plano do grande círculo.
-            raio (float): Raio da esfera (padrão: 2).
-            cor (Color): Cor do grande círculo (padrão: BLUE).
-            espessura (float): Espessura do círculo (padrão: 5).
-        """
         vetor_normal = vetor_normal / np.linalg.norm(vetor_normal)
         raio_corrigido = raio 
         # Círculo base no plano XY
@@ -284,20 +356,23 @@ class GrandeCirculo(ParametricCurve):
         # Adiciona a função à instância da classe
 
 class Paralelo(VMobject):
+    """
+    O que faz
+    Desenha um círculo paralelo de latitude fixa sobre a esfera, com possibilidade de rotação segundo a latitude do observador.
+
+    Como usar
+        paralelo = Paralelo(altitude=30, latitude=0, raio=RENDER_CELESTIAL_SPHERE_RADIUS)
+
+    Parâmetros
+        altitude (float, opcional): Latitude esférica do círculo em graus. Padrão é 0.
+        latitude (float, opcional): Latitude do observador em graus para inclinar o plano do círculo. Padrão é 0.
+        raio (float, opcional): Raio da esfera de referência. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        num_pontos (int, opcional): Número de pontos para amostragem. Padrão é 400.
+        espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
+        cor (Color, opcional): Cor do traço. Padrão é BLUE_C.
+    """
     def __init__(self, altitude, latitude=0, raio=RENDER_CELESTIAL_SPHERE_RADIUS, num_pontos=400, espessura=LINE_SIZE, cor=BLUE_C):
-        """
-        Desenha um círculo paralelo (de latitude) em uma esfera com o raio fornecido.
 
-        Parâmetros:
-            raio (float): Raio da esfera.
-            altitude (float): altitude fixa (em graus) onde o círculo será desenhado.
-            latitude (float): Latitude do lugar (Padrão = 0)
-            num_pontos (int): Número de pontos para desenhar o círculo.
-            cor (color): Cor do círculo.
-
-        Retorna:
-            VMobject: Um círculo na latitude fornecida.
-        """
         super().__init__()
 
         # Converter latitude de graus para radianos
@@ -323,18 +398,23 @@ class Paralelo(VMobject):
         self.apply_depth_test()
 
 class ArcoParalelo(Paralelo):
-    def __init__(self, altitude, angulo_inicial, angulo_final, raio=RENDER_CELESTIAL_SPHERE_RADIUS, num_pontos=50,espessura=LINE_SIZE, cor=WHITE):
-        """
-        Desenha um arco de círculo paralelo (de latitude) em uma esfera com o raio fornecido.
+    """
+    O que faz
+    Desenha um arco pertencente a um paralelo de latitude, entre azimutes inicial e final.
 
-        Parâmetros:
-            altitude (float): Latitude fixa (em graus) onde o arco será desenhado.
-            angulo_inicio (float): Azimute inicial do arco (em graus).
-            angulo_fim (float): Azimute final do arco (em graus).
-            raio (float): Raio da esfera.
-            num_pontos (int): Número de pontos para desenhar o arco.
-            cor (color): Cor do arco.
-        """
+    Como usar
+        arco = ArcoParalelo(altitude=20, angulo_inicial=0, angulo_final=90, raio=RENDER_CELESTIAL_SPHERE_RADIUS)
+
+    Parâmetros
+        altitude (float, opcional): Latitude do paralelo em graus. Padrão é 0.
+        angulo_inicial (float, opcional): Azimute inicial em graus. Padrão é 0.
+        angulo_final (float, opcional): Azimute final em graus. Padrão é 0.
+        raio (float, opcional): Raio da esfera de referência. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        num_pontos (int, opcional): Número de pontos do arco. Padrão é 50.
+        espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
+        cor (Color, opcional): Cor do arco. Padrão é WHITE.
+    """
+    def __init__(self, altitude, angulo_inicial, angulo_final, raio=RENDER_CELESTIAL_SPHERE_RADIUS, num_pontos=50,espessura=LINE_SIZE, cor=WHITE):
         super().__init__(altitude=altitude, raio=raio, num_pontos=num_pontos, cor=cor)
         angulo_inicio = 90 -angulo_inicial
         angulo_fim = 90-angulo_final
@@ -355,15 +435,22 @@ class ArcoParalelo(Paralelo):
         self.set_points_as_corners(pontos_arco).set_color(cor).set_width(espessura)
         
 class MeridianoLocal(Arc):
-    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, espessura=LINE_SIZE, cor=ORANGE, opacidade=1, **kwargs):
-        """
-        Cria um meridiano local como um arco de círculo maior.
+    """
+    O que faz
+    Desenha um semi círculo máximo que representa o meridiano local do observador, passando por zênite e nadir.
 
-        raio: Raio do arco (padrão: 2)
-        espessura: Largura da linha do arco (padrão: 3)
-        cor: Cor do arco (padrão: WHITE)
-        opacidade: Transparência do arco (padrão: 1)
-        """
+    Como usar
+        mer = MeridianoLocal(raio=RENDER_CELESTIAL_SPHERE_RADIUS, espessura=LINE_SIZE, cor=ORANGE, opacidade=1)
+
+    Parâmetros
+        raio (float, opcional): Raio do semi círculo. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
+        cor (Color, opcional): Cor do traço. Padrão é ORANGE.
+        opacidade (float, opcional): Opacidade do traço. Padrão é 1.
+        **kwargs: Argumentos adicionais herdados de Arc.
+    """
+    def __init__(self, raio=RENDER_CELESTIAL_SPHERE_RADIUS, espessura=LINE_SIZE, cor=ORANGE, opacidade=1, **kwargs):
+
         super().__init__(
             arc_center=ORIGIN, 
             radius=raio, 
@@ -382,17 +469,19 @@ if not VMOBJECT:
 
     class GrandeArco(Mobject):
         """
-        Representa um grande arco esférico entre dois pontos em uma esfera,
-        utilizando interpolação esférica (Slerp) para gerar uma curva suave.
+        O que faz
+        Constrói o arco de grande círculo entre dois pontos como um VMobject interno, por interpolação esférica.
 
-        Parâmetros:
-            ponto1 (Dot3D): Primeiro ponto do arco.
-            ponto2 (Dot3D): Segundo ponto do arco.
-            raio (float, opcional): Raio da esfera sobre a qual o arco será traçado. Padrão é 2.
+        Como usar
+            arco = GrandeArco(p1, p2, cor=WHITE, num_pontos=50, center=ORIGIN, espessura=LINE_SIZE)
+
+        Parâmetros
+            ponto1 (VMobject, opcional): Primeiro ponto da esfera. Padrão é None.
+            ponto2 (VMobject, opcional): Segundo ponto da esfera. Padrão é None.
             cor (Color, opcional): Cor do arco. Padrão é WHITE.
-            num_pontos (int, opcional): Número de pontos para interpolação do arco. Padrão é 50.
-            espessura (float, opcional): Espessura da linha do arco. Padrão é 2.
-        
+            num_pontos (int, opcional): Número de amostras. Padrão é 50.
+            center (np.ndarray, opcional): Centro da esfera. Padrão é ORIGIN.
+            espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
         """
         def __init__(self, ponto1, ponto2, cor=WHITE, num_pontos=50, center=None, espessura=LINE_SIZE):
             super().__init__()
@@ -435,16 +524,21 @@ if not VMOBJECT:
             self.apply_depth_test()
             
     class GrandeCirculo(Mobject):
+        """
+        O que faz
+        Desenha um grande círculo como curva paramétrica interna e o rotaciona para alinhar com o vetor normal fornecido.
+
+        Como usar
+            gc = GrandeCirculo(vetor_normal, raio=CELESTIAL_SPHERE_RADIUS, cor=YELLOW, espessura=1.2*LINE_SIZE)
+
+        Parâmetros
+            vetor_normal (np.ndarray, opcional): Vetor normal unitário ao plano do círculo. Padrão é vetor unitário em Z.
+            raio (float, opcional): Raio da esfera de referência. Padrão é CELESTIAL_SPHERE_RADIUS.
+            cor (Color, opcional): Cor do traço. Padrão é YELLOW.
+            espessura (float, opcional): Largura do traço. Padrão é 1.2 vezes LINE_SIZE.
+        """
         def __init__(self, vetor_normal, raio=CELESTIAL_SPHERE_RADIUS, cor=YELLOW, espessura=1.2*LINE_SIZE):
-            """
-            Desenha um círculo máximo (grande círculo) em uma esfera dado um vetor normal ao plano do círculo.
-            
-            Parâmetros:
-                vetor_normal (np.array): Vetor unitário 3D normal ao plano do grande círculo.
-                raio (float): Raio da esfera (padrão: 2).
-                cor (Color): Cor do grande círculo (padrão: YELLOW).
-                espessura (float): Espessura do círculo (padrão: 5).
-            """
+
             super().__init__()
             
             # Normaliza o vetor normal
@@ -475,17 +569,23 @@ if not VMOBJECT:
             self.apply_depth_test()
 
     class Paralelo(Mobject):
-        def __init__(self, altitude, latitude=0, raio=CELESTIAL_SPHERE_RADIUS, num_pontos=400, espessura=LINE_SIZE, cor=BLUE_C):
-            """
-            Desenha um círculo paralelo (de latitude) em uma esfera com o raio fornecido.
+        """
+        O que faz
+        Desenha um paralelo de latitude fixa como um VMobject de linhas.
 
-            Parâmetros:
-                raio (float): Raio da esfera.
-                altitude (float): altitude fixa (em graus) onde o círculo será desenhado.
-                latitude (float): Latitude do lugar (Padrão = 0)
-                num_pontos (int): Número de pontos para desenhar o círculo.
-                cor (color): Cor do círculo.
-            """
+        Como usar
+            paralelo = Paralelo(altitude=30, latitude=0, raio=CELESTIAL_SPHERE_RADIUS)
+
+        Parâmetros
+            altitude (float, opcional): Latitude do círculo em graus. Padrão é 0.
+            latitude (float, opcional): Latitude do observador para inclinação. Padrão é 0.
+            raio (float, opcional): Raio da esfera. Padrão é CELESTIAL_SPHERE_RADIUS.
+            num_pontos (int, opcional): Amostragem do traço. Padrão é 400.
+            espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
+            cor (Color, opcional): Cor do traço. Padrão é BLUE_C.
+        """
+        def __init__(self, altitude, latitude=0, raio=CELESTIAL_SPHERE_RADIUS, num_pontos=400, espessura=LINE_SIZE, cor=BLUE_C):
+
             super().__init__()
 
             # Converter latitude de graus para radianos
@@ -515,18 +615,24 @@ if not VMOBJECT:
             self.apply_depth_test()
 
     class ArcoParalelo(Mobject):
-        def __init__(self, altitude, angulo_inicial, angulo_final, raio=CELESTIAL_SPHERE_RADIUS, num_pontos=50,espessura=LINE_SIZE, cor=WHITE):
-            """
-            Desenha um arco de círculo paralelo (de latitude) em uma esfera com o raio fornecido.
+        """
+        O que faz
+        Constrói um arco de paralelo limitado por azimutes inicial e final.
 
-            Parâmetros:
-                altitude (float): Latitude fixa (em graus) onde o arco será desenhado.
-                angulo_inicial (float): Azimute inicial do arco (em graus).
-                angulo_final (float): Azimute final do arco (em graus).
-                raio (float): Raio da esfera.
-                num_pontos (int): Número de pontos para desenhar o arco.
-                cor (color): Cor do arco.
-            """
+        Como usar
+            arco = ArcoParalelo(altitude=20, angulo_inicial=0, angulo_final=90, raio=CELESTIAL_SPHERE_RADIUS)
+
+        Parâmetros
+            altitude (float, opcional): Latitude do arco em graus. Padrão é 0.
+            angulo_inicial (float, opcional): Azimute inicial em graus. Padrão é 0.
+            angulo_final (float, opcional): Azimute final em graus. Padrão é 0.
+            raio (float, opcional): Raio da esfera. Padrão é CELESTIAL_SPHERE_RADIUS.
+            num_pontos (int, opcional): Pontos amostrados do arco. Padrão é 50.
+            espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
+            cor (Color, opcional): Cor do arco. Padrão é WHITE.
+        """
+        def __init__(self, altitude, angulo_inicial, angulo_final, raio=CELESTIAL_SPHERE_RADIUS, num_pontos=50,espessura=LINE_SIZE, cor=WHITE):
+
             super().__init__()
             
             angulo_inicio = 90 - angulo_inicial
@@ -555,15 +661,22 @@ if not VMOBJECT:
             self.set_width(espessura)
 
     class MeridianoLocal(Mobject):
-        def __init__(self, raio=CELESTIAL_SPHERE_RADIUS, espessura=LINE_SIZE, cor=ORANGE, opacidade=1, **kwargs):
-            """
-            Cria um meridiano local como um arco de círculo maior.
+        """
+        O que faz
+        Forma o meridiano local como um arco rotacionado que passa por zênite e nadir, usando Arc internamente.
 
-            raio: Raio do arco (padrão: 2)
-            espessura: Largura da linha do arco (padrão: 3)
-            cor: Cor do arco (padrão: ORANGE)
-            opacidade: Transparência do arco (padrão: 1)
-            """
+        Como usar
+            mer = MeridianoLocal(raio=CELESTIAL_SPHERE_RADIUS, espessura=LINE_SIZE, cor=ORANGE)
+
+        Parâmetros
+            raio (float, opcional): Raio do arco. Padrão é CELESTIAL_SPHERE_RADIUS.
+            espessura (float, opcional): Largura do traço. Padrão é LINE_SIZE.
+            cor (Color, opcional): Cor do traço. Padrão é ORANGE.
+            opacidade (float, opcional): Opacidade do traço. Padrão é 1.
+            **kwargs: Argumentos adicionais herdados de Arc.
+        """
+        def __init__(self, raio=CELESTIAL_SPHERE_RADIUS, espessura=LINE_SIZE, cor=ORANGE, opacidade=1, **kwargs):
+
             super().__init__()
             
             # Criar um arco semicircular usando Arc
@@ -588,15 +701,18 @@ if not VMOBJECT:
 #DEPENDENTE DO OBSERVADOR
 class EixoPolar(Line3D):
     """
-    Cria um eixo polar em 3D a partir de uma latitude específica, representado por pequenos segmentos de linha.
+    O que faz
+    Cria o eixo polar inclinado de acordo com a latitude do observador, como um segmento de reta 3D.
 
-    Parâmetros:
-        latitude_graus (float): Latitude em graus.
-        comprimento (float): Comprimento total do eixo (padrão: 4).
-        phi (float): Ângulo de orientação azimutal do eixo (padrão: PI/2).
-        espessura (float): Espessura dos segmentos de linha (padrão: 0.02).
-        cor (Color): Cor dos segmentos de linha (padrão: RED).
-        granularidade_3d (int): Número de segmentos para aumentar a suavidade (padrão: 20).
+    Como usar
+        eixo = EixoPolar(latitude_graus=-23, comprimento=2*RENDER_CELESTIAL_SPHERE_RADIUS)
+
+    Parâmetros
+        latitude_graus (float, opcional): Latitude em graus para inclinação do eixo. Padrão é 0.
+        comprimento (float, opcional): Comprimento total do eixo. Padrão é duas vezes RENDER_CELESTIAL_SPHERE_RADIUS.
+        phi (float, opcional): Ângulo azimutal de orientação em radianos. Padrão é PI dividido por 2.
+        espessura (float, opcional): Espessura do traço. Padrão é 0.03 vezes ELEMENTS_SCALE.
+        cor (Color, opcional): Cor do eixo. Padrão é RED.
     """
     def __init__(self, latitude_graus, comprimento=2*RENDER_CELESTIAL_SPHERE_RADIUS, phi=PI / 2, espessura=0.03*ELEMENTS_SCALE, cor=RED):
 
@@ -618,15 +734,20 @@ class EixoPolar(Line3D):
         self.set_color(cor)
 
 class Equador(GrandeCirculo):
+    """
+    O que faz
+    Desenha o círculo máximo correspondente ao equador celeste para uma latitude dada do observador.
+
+    Como usar
+        eq = Equador(latitude=-23, cor=YELLOW_D, raio=RENDER_CELESTIAL_SPHERE_RADIUS)
+
+    Parâmetros
+        latitude (float, opcional): Latitude do observador em graus. Padrão é 0.
+        cor (Color, opcional): Cor do traço. Padrão é YELLOW_D.
+        raio (float, opcional): Raio da esfera. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+    """
     def __init__(self, latitude, cor=YELLOW_D, raio=RENDER_CELESTIAL_SPHERE_RADIUS):
-        """
-        Cria um equador em uma esfera, dado um valor de latitude.
-        
-        Parâmetros:
-            latitude (float): Latitude onde o equador será desenhado em graus.
-            cor (Color): Cor do círculo (padrão: YELLOW_D).
-            raio (float): Raio da esfera (padrão: 2).
-        """
+
         # Converte a latitude para radianos
         latitude_rad = np.radians(latitude)
         
@@ -639,6 +760,23 @@ class Equador(GrandeCirculo):
         super().__init__(vetor_normal=vetor_normal, raio=raio, cor=cor)
 
 class Grade(VGroup):
+    """
+    O que faz
+    Desenha uma grade esférica com paralelos de declinação e meridianos de ascensão reta para referência visual.
+
+    Como usar
+        grade = Grade(latitude=90, raio=RENDER_CELESTIAL_SPHERE_RADIUS, n_ar=24)
+
+    Parâmetros
+        latitude (float, opcional): Latitude para inclinar a grade. Padrão é 90.
+        raio (float, opcional): Raio da esfera de referência. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        cor_dec (Color, opcional): Cor dos paralelos de declinação. Padrão é GREY_A.
+        cor_ar (Color, opcional): Cor dos meridianos de ascensão reta. Padrão é GREY_A.
+        opacidade (float, opcional): Opacidade das linhas. Padrão é 0.8.
+        espessura (float, opcional): Largura das linhas. Padrão é 0.5 vezes LINE_SIZE.
+        n_ar (int, opcional): Número de divisões de ascensão reta. Padrão é 24.
+        **kwargs: Argumentos adicionais herdados de VGroup.
+    """
     def __init__(self, latitude=90, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor_dec=GREY_A,cor_ar=GREY_A, opacidade=0.8,espessura=0.5*LINE_SIZE, n_ar=24,**kwargs):
         super().__init__(**kwargs)
         self.raio = raio
@@ -670,6 +808,26 @@ class Grade(VGroup):
         self.apply_depth_test()
 
 class GradeMesh(SurfaceMesh):
+    """
+    O que faz
+    Cria uma malha de grade sobre a esfera para visualização de linhas estruturais com controle de resolução.
+
+    Como usar
+        mesh = GradeMesh(latitude=90, raio=RENDER_CELESTIAL_SPHERE_RADIUS, n_dec=19, n_ra=25)
+
+    Parâmetros
+        latitude (float, opcional): Latitude para inclinar a malha. Padrão é 90.
+        raio (float, opcional): Raio da esfera de referência. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
+        cor (Color, opcional): Cor das linhas da malha. Padrão é BLUE_C.
+        n_dec (int, opcional): Resolução em declinação. Padrão é 19.
+        n_ra (int, opcional): Resolução em ascensão reta. Padrão é 25.
+        opacidade (float, opcional): Opacidade das linhas. Padrão é 0.5.
+        espessura (float, opcional): Espessura das linhas. Padrão é 0.5 vezes LINE_SIZE.
+        **kwargs: Argumentos adicionais herdados de SurfaceMesh.
+
+    Observações
+        Usa uma esfera base para gerar a malha e aplica rotação se a latitude for diferente de noventa.
+    """
     def __init__(self, latitude=90,raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=BLUE_C, n_dec=19,n_ra=25, opacidade=0.5, espessura=0.5*LINE_SIZE,**kwargs):
         self.raio = raio
 
@@ -699,16 +857,24 @@ class GradeMesh(SurfaceMesh):
 #ELEMENTOS EXTRA
 
 class CirculoTangente(Polygon):
+    """
+    O que faz
+    Constrói um círculo no plano tangente à esfera no ponto fornecido, usando o ponto como centro local.
+
+    Como usar
+        ct = CirculoTangente(ponto, raio_circulo=0.2, cor=WHITE, espessura=3)
+
+    Parâmetros
+        ponto (VMobject, opcional): Ponto na superfície da esfera que define o plano tangente. Padrão é None.
+        raio_circulo (float, opcional): Raio do círculo no plano tangente. Padrão é 0.2.
+        cor (Color, opcional): Cor do contorno. Padrão é WHITE.
+        espessura (float, opcional): Largura do contorno. Padrão é 3.
+
+    Observações
+        Gera dois vetores tangentes ortogonais para parametrizar a circunferência no plano tangente.
+    """
     def __init__(self, ponto: VMobject, raio_circulo=0.2, cor=WHITE, espessura=3):
-        """
-        Cria um círculo tangente à superfície de uma esfera no ponto 'p', com o ponto 'p' como centro.
-        
-        Parâmetros:
-            ponto (Dot3D): O ponto na superfície da esfera onde o círculo é desenhado.
-            raio_circulo (float): Raio do círculo tangente (padrão: 0.2).
-            cor (Color): Cor do círculo (padrão: WHITE).
-            espessura (float): Espessura do círculo (padrão: 1).
-        """
+
         # Obter a posição do ponto p
         p_pos = ponto.get_center()
 
@@ -740,19 +906,36 @@ class CirculoTangente(Polygon):
         self.apply_depth_test()
 
 class AnguloEsferico(VGroup):
+    """
+    O que faz
+    Desenha um arco indicador do ângulo esférico interno em um ponto da esfera entre dois grandes arcos, com possibilidade de rótulo matemático.
+
+    Como usar
+        ang = AnguloEsferico(p, p1, p2, raio_circulo=0.3, cor=WHITE, math_label="\\alpha")
+
+    Parâmetros
+        p (VMobject, opcional): Ponto do vértice do ângulo na esfera. Padrão é None.
+        p1 (VMobject, opcional): Primeiro ponto para definição do plano. Padrão é None.
+        p2 (VMobject, opcional): Segundo ponto para definição do plano. Padrão é None.
+        raio_circulo (float, opcional): Raio do arco no plano tangente. Padrão é 0.3 vezes ELEMENTS_SCALE.
+        cor (Color, opcional): Cor do arco. Padrão é WHITE.
+        math_label (str, opcional): Texto matemático LaTeX para exibir ao lado do arco. Padrão é None.
+        reducing_factor (float, opcional): Fator de recuo em relação à normal, para evitar z fighting. Padrão é 50.
+        cor_do_texto (Color, opcional): Cor do rótulo. Padrão é WHITE.
+        label_distance (float, opcional): Distância do rótulo ao arco. Padrão é 1.
+        tamanho_da_fonte (int, opcional): Tamanho da fonte em pontos. Padrão é 30.
+        num_pontos (int, opcional): Número de pontos do arco. Padrão é 30.
+        center (np.ndarray, opcional): Centro geométrico da esfera caso deslocada. Padrão é None.
+        espessura (float, opcional): Espessura do arco. Padrão é 2.
+
+    Retorno
+        VGroup: Grupo contendo o arco e, se definido, o rótulo.
+
+    Observações
+        O valor do ângulo é calculado com a função angulo_diedro_de_vetores_cartesianos e pode ser obtido por valor_angulo.
+    """
     def __init__(self, p: VMobject, p1: VMobject, p2: VMobject, raio_circulo=0.3*ELEMENTS_SCALE, cor=WHITE, math_label = None,reducing_factor = 50, cor_do_texto=WHITE, label_distance=1,tamanho_da_fonte=30, num_pontos=30, center=None,espessura=2):
-        """
-        Desenha um arco de cÃ­rculo tangente Ã  esfera no ponto 'p'.
-        
-        ParÃ¢metros:
-            p (Dot3D): O ponto na superfÃ­cie da esfera.
-            p1 (Dot3D): O primeiro ponto usado para calcular o Ã¢ngulo esfÃ©rico.
-            p2 (Dot3D): O segundo ponto usado para calcular o Ã¢ngulo esfÃ©rico.
-            raio_circulo (float): Raio do cÃ­rculo tangente (padrÃ£o: 0.3).
-            cor (Color): Cor do arco (padrÃ£o: WHITE).
-            num_pontos (int): NÃºmero de pontos para desenhar o arco (padrÃ£o: 30).
-        
-        """
+
         
         if center is None:
             center = ORIGIN
@@ -800,10 +983,37 @@ class AnguloEsferico(VGroup):
         self.apply_depth_test()
     
     def valor_angulo(self) -> float:  # Agora Ã© acessado como um atributo
+        """
+        O que faz
+        Retorna o valor atual do ângulo esférico interno no vértice definido.
 
+        Como usar
+            valor = angulo.valor_angulo()
+
+        Parâmetros
+            Não se aplica.
+
+        Retorno
+            float: Ângulo em graus calculado entre os planos definidos.
+        """
         return angulo_diedro_de_vetores_cartesianos(self.p1.get_center(), self.p2.get_center(), self.p_pos)
    
     def atualizar_angulo(self, p: VMobject, p1: VMobject, p2: VMobject):
+        """
+        O que faz
+        Recalcula e atualiza o arco do ângulo esférico após mover o vértice ou os pontos de referência.
+
+        Como usar
+            angulo.atualizar_angulo(novo_p, novo_p1, novo_p2)
+
+        Parâmetros
+            p (VMobject, opcional): Novo ponto do vértice. Padrão é None.
+            p1 (VMobject, opcional): Novo primeiro ponto de referência. Padrão é None.
+            p2 (VMobject, opcional): Novo segundo ponto de referência. Padrão é None.
+
+        Retorno
+            None: Atualiza os pontos internos do objeto.
+        """
         p_pos = p.get_center()
         self.p_pos = p_pos
         
@@ -835,17 +1045,27 @@ class AnguloEsferico(VGroup):
         self.set_points_as_corners(pontos_arco)
      
 class RegiaoLatitudinal(Surface):
-    def __init__(self, lat_ini, lat_fim, raio=RENDER_CELESTIAL_SPHERE_RADIUS+0.02, cor=YELLOW, opacidade=0.5, resolucao=(40, 40), **kwargs):
-        """
-        Cria uma faixa de uma esfera delimitada pelas latitudes lat_ini e lat_fim.
+    """
+    O que faz
+    Cria uma faixa esférica delimitada por duas latitudes, útil para destacar zonas como trópicos ou círculos polares.
 
-        lat_ini: Latitude inicial em graus
-        lat_fim: Latitude final em graus
-        raio: Raio da esfera (padrão: 1)
-        cor: Cor da faixa (padrão: YELLOW)
-        opacidade: Transparência da faixa (padrão: 1)
-        resolucao: Número de divisões na malha (padrão: 30x60)
-        """
+    Como usar
+        faixa = RegiaoLatitudinal(lat_ini=-23.5, lat_fim=23.5, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=YELLOW, opacidade=0.5)
+
+    Parâmetros
+        lat_ini (float, opcional): Latitude inicial em graus. Padrão é 0.
+        lat_fim (float, opcional): Latitude final em graus. Padrão é 0.
+        raio (float, opcional): Raio da esfera. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS mais 0.02.
+        cor (Color, opcional): Cor de preenchimento. Padrão é YELLOW.
+        opacidade (float, opcional): Opacidade do preenchimento. Padrão é 0.5.
+        resolucao (tuple, opcional): Resolução da malha u e v. Padrão é 40, 40.
+        **kwargs: Argumentos adicionais herdados de Surface.
+
+    Observações
+        A parametrização percorre a longitude completa e interpola a latitude entre os limites informados.
+    """ 
+    def __init__(self, lat_ini, lat_fim, raio=RENDER_CELESTIAL_SPHERE_RADIUS+0.02, cor=YELLOW, opacidade=0.5, resolucao=(40, 40), **kwargs):
+
         lat_ini = np.radians(lat_ini)
         lat_fim = np.radians(lat_fim)
 
@@ -869,18 +1089,27 @@ class RegiaoLatitudinal(Surface):
         return np.array([x, y, z])
         
 class RegiaoMeridional(Surface):
+    """
+    O que faz
+    Cria uma faixa esférica delimitada por duas longitudes, útil para destacar setores específicos como intervalos de azimute.
+
+    Como usar
+        setor = RegiaoMeridional(lon_ini=0, lon_fim=60, raio=RENDER_CELESTIAL_SPHERE_RADIUS, cor=GREEN, opacidade=0.5)
+
+    Parâmetros
+        lon_ini (float, opcional): Longitude inicial em graus. Padrão é 0.
+        lon_fim (float, opcional): Longitude final em graus. Padrão é 0.
+        raio (float, opcional): Raio da esfera. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS mais 0.02.
+        cor (Color, opcional): Cor de preenchimento. Padrão é GREEN.
+        opacidade (float, opcional): Opacidade do preenchimento. Padrão é 0.5.
+        resolucao (tuple, opcional): Resolução da malha u e v. Padrão é 40, 40.
+        **kwargs: Argumentos adicionais herdados de Surface.
+
+    Observações
+        A latitude é varrida de menos noventa a mais noventa, enquanto a longitude é interpolada entre os limites definidos.
+    """
     def __init__(self, lon_ini, lon_fim, raio=RENDER_CELESTIAL_SPHERE_RADIUS+0.02, cor=GREEN, opacidade=0.5, resolucao=(40, 40), **kwargs):
         
-        """
-        Cria uma faixa de uma esfera delimitada pelas longitudes lon_ini e lon_fim.
-
-        lon_ini: Longitude inicial em graus
-        lon_fim: Longitude final em graus
-        raio: Raio da esfera (padrão: 2)
-        cor: Cor da faixa (padrão: GREEN)
-        opacidade: Transparência da faixa (padrão: 0.2)
-        resolucao: Número de divisões na malha (padrão: 20x10)
-        """
         lon_ini = np.radians(lon_ini)
         lon_fim = np.radians(lon_fim)
         self.raio = raio
@@ -905,6 +1134,20 @@ class RegiaoMeridional(Surface):
             return np.array([x, y, z])
 
 class LinhaVMobject(VMobject):
+    """
+    O que faz
+    Cria uma linha entre dois pontos arbitrários no espaço como um VMobject simples.
+
+    Como usar
+        linha = LinhaVMobject(ponto_inicial, ponto_final, cor=WHITE, espessura=2)
+
+    Parâmetros
+        ponto_inicial (np.ndarray, opcional): Coordenadas do ponto inicial. Padrão é None.
+        ponto_final (np.ndarray, opcional): Coordenadas do ponto final. Padrão é None.
+        cor (Color, opcional): Cor do traço. Padrão é WHITE.
+        espessura (float, opcional): Largura do traço. Padrão é 2.
+        **kwargs: Argumentos adicionais herdados de VMobject.
+    """
     def __init__(self, ponto_inicial, ponto_final, cor=WHITE, espessura=2, **kwargs):
         super().__init__(**kwargs)
         
@@ -913,18 +1156,25 @@ class LinhaVMobject(VMobject):
         self.set_stroke(width=espessura)
 
 class Seta(Arrow):
-    def __init__(self, ponto, angulo: float, comprimento=0.5, cor=WHITE, espessura=2):
-        """
-        Cria uma seta tangente à superfície de uma esfera no ponto 'ponto', inclinada de um ângulo dado
-        em relação à direção zenital (eixo Z positivo).
+    """
+    O que faz
+    Cria uma seta tangente à esfera no ponto dado, orientada por um ângulo relativo ao norte local.
 
-        Parâmetros:
-            ponto (Dot3D): O ponto na superfície da esfera onde a seta se origina.
-            angulo (float): O ângulo em relação à direção norte (em radianos).
-            comprimento (float): Comprimento da seta (padrão: 0.5).
-            cor (Color): Cor da seta (padrão: WHITE).
-            espessura (float): Espessura da seta (padrão: 2).
-        """
+    Como usar
+        seta = Seta(ponto, angulo=45, comprimento=0.5, cor=WHITE, espessura=2)
+
+    Parâmetros
+        ponto (VMobject, opcional): Ponto de origem da seta sobre a esfera. Padrão é None.
+        angulo (float, opcional): Ângulo em graus em relação à direção norte local. Padrão é 0.
+        comprimento (float, opcional): Comprimento da seta. Padrão é 0.5.
+        cor (Color, opcional): Cor da seta. Padrão é WHITE.
+        espessura (float, opcional): Largura do traço. Padrão é 2.
+
+    Observações
+        Usa a base tangente local formada por dois vetores ortogonais ao vetor radial para orientar a seta.
+    """
+    def __init__(self, ponto, angulo: float, comprimento=0.5, cor=WHITE, espessura=2):
+
         # Obter a posição do ponto
         p_pos = ponto.get_center()
 
@@ -950,19 +1200,27 @@ class Seta(Arrow):
         super().__init__(start=p_pos, end=ponto_final, color=cor, stroke_width=espessura, buff=0)
 
 class SetaGrandeCirculo(Seta):
-    def __init__(self, ponto, grande_circulo: VGroup, comprimento=0.5, cor=WHITE, espessura=2, inverter=False, granularidade=100):
-        """
-        Cria uma seta tangente à superfície da esfera no ponto 'ponto', apontando na direção do grande círculo.
+    """
+    O que faz
+    Cria uma seta tangente ao grande círculo especificado no ponto dado, apontando ao longo da direção local do círculo.
 
-        Parâmetros:
-            ponto (Dot3D): O ponto na superfície da esfera onde a seta se origina.
-            grande_circulo (VGroup): O grande círculo que define a direção da seta.
-            comprimento (float): Comprimento da seta (padrão: 0.5).
-            cor (Color): Cor da seta (padrão: WHITE).
-            espessura (float): Espessura da seta (padrão: 2).
-            inverter (bool): Se True, inverte a direção da seta (padrão: False).
-            granularidade (int): Define a precisão na busca do ponto mais próximo (padrão: 100).
-        """
+    Como usar
+        seta_gc = SetaGrandeCirculo(ponto, grande_circulo, comprimento=0.5, cor=WHITE, espessura=2, inverter=False)
+
+    Parâmetros
+        ponto (VMobject, opcional): Ponto na esfera onde a seta nasce. Padrão é None.
+        grande_circulo (VGroup, opcional): Objeto contendo o grande círculo desenhado. Padrão é None.
+        comprimento (float, opcional): Comprimento da seta. Padrão é 0.5.
+        cor (Color, opcional): Cor da seta. Padrão é WHITE.
+        espessura (float, opcional): Largura do traço. Padrão é 2.
+        inverter (bool, opcional): Indica se a direção deve ser invertida. Padrão é False.
+        granularidade (int, opcional): Redução de pontos para busca de tangente. Padrão é 100.
+
+    Observações
+        Seleciona o ponto mais próximo no grande círculo e usa o vizinho para estimar a direção tangente.
+    """
+    def __init__(self, ponto, grande_circulo: VGroup, comprimento=0.5, cor=WHITE, espessura=2, inverter=False, granularidade=100):
+
         # Obter a posição do ponto na esfera
         p_pos = ponto.get_center()
 
@@ -1015,27 +1273,35 @@ class SetaGrandeCirculo(Seta):
 #MARCADORES
 
 class MarcadorAngulo(VGroup):
+    """
+    O que faz
+    Marca um ângulo no espaço entre duas linhas radiais que partem de uma origem até dois pontos, com arco opcional e rótulos.
+
+    Como usar
+        marcador = MarcadorAngulo(p1, p2, raio_arco=0.5, barra=True, cor_linha=WHITE, cor_arco=WHITE)
+
+    Parâmetros
+        ponto1 (VMobject ou np.ndarray, opcional): Primeiro ponto do ângulo ou vetor posição. Padrão é None.
+        ponto2 (VMobject ou np.ndarray, opcional): Segundo ponto do ângulo ou vetor posição. Padrão é None.
+        raio_arco (float, opcional): Raio do arco que representa o ângulo. Padrão é 0.5.
+        Origem (VMobject ou np.ndarray, opcional): Objeto ou vetor da origem das linhas. Padrão é None para ORIGIN.
+        barra (bool, opcional): Indica se desenha as barras radiais. Padrão é True.
+        cor_linha (Color, opcional): Cor das barras radiais. Padrão é WHITE.
+        espessura_linha (float, opcional): Espessura das barras radiais. Padrão é 2.
+        cor_arco (Color, opcional): Cor do arco do ângulo. Padrão é WHITE.
+        cor_texto (Color, opcional): Cor do texto do rótulo. Padrão é WHITE.
+        espessura_arco (float, opcional): Espessura do arco. Padrão é 3.
+        label_2d (bool, opcional): Indica rótulo 2D. Padrão é False.
+        label_3d (bool, opcional): Indica rótulo 3D. Padrão é False.
+        math_label_2d (str, opcional): Texto LaTeX do rótulo 2D. Padrão é None.
+        math_label_3d (str, opcional): Texto LaTeX do rótulo 3D. Padrão é None.
+        label_distance (float, opcional): Distância do rótulo ao arco. Padrão é 1.
+        tamanho_da_fonte (int, opcional): Tamanho do rótulo. Padrão é 20.
+        arco (bool, opcional): Indica se desenha o arco. Padrão é True.
+        **kwargs: Argumentos adicionais herdados de VGroup.
+    """
     def __init__(self, ponto1:VMobject, ponto2:VMobject,raio_arco=0.5, Origem = None , barra=True, cor_linha=WHITE, espessura_linha=2, cor_arco=WHITE, cor_texto=WHITE, espessura_arco=3, label_2d=False,label_3d=False, math_label_2d=None, math_label_3d=None, label_distance=1, tamanho_da_fonte=20, arco=True, **kwargs):
-        """
-        Classe que cria um arco marcador de ângulo entre duas linhas radiais que conectam o centro aos pontos.
-        
-        Parâmetros:
-            ponto1 (PontoAstro): O primeiro ponto no espaço.
-            ponto2 (PontoAstro): O segundo ponto no espaço.
-            barra (bool): Se True, adiciona as linhas radiais.
-            cor_linha (Color): Cor das linhas radiais.
-            espessura_linha (float): Espessura das linhas radiais.
-            cor_arco (Color): Cor do arco do ângulo.
-            espessura_arco (float): Espessura do arco.
-            label_2d (bool): Se True, exibe um rótulo 2D com o valor do ângulo.
-            label_3d (bool): Se True, exibe um rótulo 3D com o valor do ângulo.
-            math_label_2d (str): Texto matemático opcional para exibir como rótulo 2D.
-            math_label_3d (str): Texto matemático opcional para exibir como rótulo 3D.
-            label_distance (float): Distância do rótulo ao arco.
-            tamanho_da_fonte (int): Tamanho da fonte do rótulo.
-            arco (bool): Se True, adiciona o arco do ângulo.
-            Origem (np.array): Ponto de origem para as linhas radiais.
-        """
+
         super().__init__(**kwargs)
         if Origem == None:
             Origem = ORIGIN
@@ -1107,27 +1373,33 @@ class MarcadorAngulo(VGroup):
             self.add(arco2)
 
 class MarcadorAltura(VGroup):
+    """
+    O que faz
+    Marca a altura de um ponto acima do plano XY por um arco no plano vertical definido pela projeção do ponto no plano.
+
+    Como usar
+        marcador = MarcadorAltura(ponto, cor_linha=WHITE, cor_arco=WHITE)
+
+    Parâmetros
+        ponto (VMobject, opcional): Ponto cuja altura será marcada. Padrão é None.
+        Origem (VMobject ou np.ndarray, opcional): Origem das linhas. Padrão é ORIGIN.
+        barra (bool, opcional): Indica se desenha a barra radial. Padrão é True.
+        cor_linha (Color, opcional): Cor da barra radial. Padrão é WHITE.
+        espessura_linha (float, opcional): Espessura da barra radial. Padrão é 2.
+        cor_arco (Color, opcional): Cor do arco do ângulo. Padrão é WHITE.
+        cor_texto (Color, opcional): Cor dos rótulos. Padrão é WHITE.
+        espessura_arco (float, opcional): Espessura do arco. Padrão é 3.
+        label_2d (bool, opcional): Indica rótulo 2D. Padrão é False.
+        label_3d (bool, opcional): Indica rótulo 3D. Padrão é False.
+        math_label_2d (str, opcional): Texto do rótulo 2D. Padrão é None.
+        math_label_3d (str, opcional): Texto do rótulo 3D. Padrão é None.
+        label_distance (float, opcional): Distância do rótulo ao arco. Padrão é 1.
+        tamanho_da_fonte (int, opcional): Tamanho da fonte. Padrão é 20.
+        arco (bool, opcional): Indica se desenha o arco de altura. Padrão é True.
+        **kwargs: Argumentos adicionais herdados de VGroup.
+    """
     def __init__(self, ponto:VMobject, Origem = None , barra=True, cor_linha=WHITE, espessura_linha=2, cor_arco=WHITE, cor_texto=WHITE, espessura_arco=3, label_2d=False,label_3d=False, math_label_2d=None, math_label_3d=None, label_distance=1, tamanho_da_fonte=20, arco=True, **kwargs):
-        """
-        Classe que cria um arco marcador de ângulo entre duas linhas radiais que conectam o centro aos pontos.
-        
-        Parâmetros:
-            ponto1 (PontoAstro): O primeiro ponto no espaço.
-            ponto2 (PontoAstro): O segundo ponto no espaço.
-            barra (bool): Se True, adiciona as linhas radiais.
-            cor_linha (Color): Cor das linhas radiais.
-            espessura_linha (float): Espessura das linhas radiais.
-            cor_arco (Color): Cor do arco do ângulo.
-            espessura_arco (float): Espessura do arco.
-            label_2d (bool): Se True, exibe um rótulo 2D com o valor do ângulo.
-            label_3d (bool): Se True, exibe um rótulo 3D com o valor do ângulo.
-            math_label_2d (str): Texto matemático opcional para exibir como rótulo 2D.
-            math_label_3d (str): Texto matemático opcional para exibir como rótulo 3D.
-            label_distance (float): Distância do rótulo ao arco.
-            tamanho_da_fonte (int): Tamanho da fonte do rótulo.
-            arco (bool): Se True, adiciona o arco do ângulo.
-            Origem (np.array): Ponto de origem para as linhas radiais.
-        """
+
         super().__init__(**kwargs)
         if Origem == None:
             Origem = ORIGIN
@@ -1195,6 +1467,31 @@ class MarcadorAltura(VGroup):
             self.add(arco2)
 
 class MarcadorLatitude(VGroup):
+    """
+    O que faz
+    Desenha um arco marcador do ângulo de latitude em relação ao plano do horizonte, posicionando-o automaticamente no hemisfério correspondente.
+
+    Como usar
+        marcador = MarcadorLatitude(latitude=23.5, cor_arco=WHITE)
+        cena.add(marcador)
+
+    Parâmetros
+        latitude (float, opcional): Latitude em graus que será marcada. Padrão é 0.
+        cor_arco (Color, opcional): Cor do arco marcador. Padrão é WHITE.
+        cor_texto (Color, opcional): Cor do texto do rótulo, se usado. Padrão é WHITE.
+        espessura_arco (float, opcional): Largura do traço do arco. Padrão é 3.
+        label_2d (bool, opcional): Exibe rótulo em 2D orientado para a câmera. Padrão é False.
+        label_3d (bool, opcional): Exibe rótulo como objeto 3D na cena. Padrão é False.
+        math_label_2d (str, opcional): Texto LaTeX personalizado para rótulo 2D. Padrão é None.
+        math_label_3d (str, opcional): Texto LaTeX personalizado para rótulo 3D. Padrão é None.
+        label_distance (float, opcional): Fator de distância do rótulo ao arco. Padrão é 1.
+        tamanho_da_fonte (int, opcional): Tamanho da fonte do rótulo. Padrão é 20.
+        arco (bool, opcional): Controla a adição do arco à cena. Padrão é True.
+        **kwargs (dict, opcional): Argumentos adicionais herdados de VGroup.
+
+    Observações
+        Se latitude for zero, o marcador não desenha o arco, pois não há inclinação a ser marcada.
+    """
     def __init__(self, latitude, cor_arco=WHITE, cor_texto=WHITE, espessura_arco=3, label_2d=False,label_3d=False, math_label_2d=None, math_label_3d=None, label_distance=1, tamanho_da_fonte=20, arco=True, **kwargs):
 
         super().__init__(**kwargs)
@@ -1267,18 +1564,26 @@ class MarcadorLatitude(VGroup):
 
 class MarcadorAnguloExterno(VGroup):
     """
-    Classe que cria um arco entre dois pontos no plano 2D e, opcionalmente, uma etiqueta com o valor do ângulo.
+    O que faz
+    Constrói um arco externo entre dois pontos em coordenadas 3D sobre a esfera utilizando interpolação esférica e, opcionalmente, adiciona um rótulo.
 
-    Parâmetros:
-        ponto1 (tuple): Coordenadas (x, y) do primeiro ponto no plano. Usado para definir o início do arco. 
-        ponto2 (tuple): Coordenadas (x, y) do segundo ponto no plano. Usado para definir o final do arco. 
-        raio (float): Raio do arco que conecta os dois pontos. Controla o tamanho do arco. 
-        cor (cor): Cor do arco. Também define a cor da etiqueta se fornecida. 
-        num_pontos (int): Número de pontos usados para aproximar a curva do arco. 
-        label_distance (float): Distância entre o centro do arco e a etiqueta de texto.  
-        tamanho_fonte (int): Tamanho da fonte da etiqueta de texto. 
-        espessura (float): Espessura da linha do arco. Controla a espessura do arco gerado. 
-        label (str, opcional): Texto a ser exibido como rótulo no arco. Se fornecido, uma etiqueta será adicionada ao arco. 
+    Como usar
+        arco = MarcadorAnguloExterno(ponto1=obj1, ponto2=obj2, raio=2.2, cor=ORANGE, label="α")
+        cena.add(arco)
+
+    Parâmetros
+        ponto1 (VMobject, opcional): Primeiro ponto sobre a esfera. Padrão é None.
+        ponto2 (VMobject, opcional): Segundo ponto sobre a esfera. Padrão é None.
+        raio (float, opcional): Raio efetivo para posicionar o arco. Padrão é 2.2.
+        cor (Color, opcional): Cor do arco. Padrão é ORANGE.
+        num_pontos (int, opcional): Número de amostras para o arco. Padrão é 50.
+        label_distance (float, opcional): Fator de deslocamento do rótulo em relação ao centro de massa do arco. Padrão é 1.
+        tamanho_fonte (int, opcional): Tamanho da fonte do rótulo. Padrão é 20.
+        espessura (float, opcional): Largura do traço do arco. Padrão é 2.
+        label (str, opcional): Texto do rótulo LaTeX a ser exibido. Padrão é None.
+
+    Observações
+        Se os pontos coincidirem, nada é desenhado. O rótulo é rotacionado para melhor legibilidade em cena 3D.
     """
     def __init__(self, ponto1:VMobject, ponto2:VMobject, raio=2.2, cor=ORANGE, num_pontos=50, label_distance=1, tamanho_fonte=20, espessura=2, label=None):
         super().__init__()
@@ -1310,14 +1615,26 @@ class MarcadorAnguloExterno(VGroup):
         self.add(arco)
 
 class SegmentoAstro(LinhaVMobject):
+    """
+    O que faz
+    Desenha um segmento de linha do centro até um PontoAstro, útil para indicar a direção radial do astro na esfera.
+
+    Como usar
+        seg = SegmentoAstro(ponto=estrela, cor=WHITE, espessura=2)
+        cena.add(seg)
+
+    Parâmetros
+        ponto (VMobject, opcional): Objeto que possui posição sobre a esfera, tipicamente PontoAstro. Padrão é None.
+        cor (Color, opcional): Cor do segmento. Padrão é WHITE.
+        espessura (float, opcional): Largura do traço. Padrão é 2.
+        ORIGEM (VMobject ou np.ndarray, opcional): Objeto ou vetor indicando a origem do segmento. Padrão é ORIGIN.
+        **kwargs (dict, opcional): Argumentos adicionais herdados de VMobject.
+
+    Observações
+        Se ORIGEM for um VMobject, usa seu centro como origem geométrica do segmento.
+    """
     def __init__(self, ponto, cor=WHITE, espessura=2, ORIGEM = None, **kwargs):
-        """
-        Classe que cria uma linha até o ponto 
-        Parâmetros:
-            ponto (PontoAstro): O ponto no espaço.
-            cor_linha (cor): A cor das linhas radiais.
-            espessura_linha (float): A espessura das linhas radiais.
-        """
+
         if ORIGEM == None:
             ORIGEM = ORIGIN
         else: 
@@ -1332,6 +1649,25 @@ class SegmentoAstro(LinhaVMobject):
 #Objetos 
 
 class Moon(TexturedSurface):
+    """
+    O que faz
+    Cria uma esfera texturizada representando a Lua, com controle de sombreamento e textura noturna.
+
+    Como usar
+        lua = Moon(radius=RENDER_MOON_RADIUS)
+        cena.add(lua)
+
+    Parâmetros
+        radius (float, opcional): Raio da Lua. Padrão é RENDER_MOON_RADIUS.
+        resolution (tuple, opcional): Resolução da esfera (u, v). Padrão é (101, 51).
+        texture (str, opcional): URL ou caminho da textura diurna. Padrão é uma textura pública da Lua.
+        dark_texture (str, opcional): URL ou caminho da textura noturna. Padrão é textura preta.
+        shading (tuple, opcional): Parâmetros de sombreamento da superfície. Padrão é (0.25, 0.25, 1).
+        **kwargs (dict, opcional): Argumentos adicionais herdados de TexturedSurface.
+
+    Observações
+        A rotação e posicionamento podem ser ajustados após a criação com os métodos padrão do Manim.
+    """
     def __init__(
         self,
         radius=RENDER_MOON_RADIUS,
@@ -1346,6 +1682,25 @@ class Moon(TexturedSurface):
         self.set_shading(*shading)
 
 class Mars(TexturedSurface):
+    """
+    O que faz
+    Cria uma esfera texturizada representando Marte, com controle de sombreamento e textura noturna.
+
+    Como usar
+        marte = Mars(radius=RENDER_MARS_RADIUS)
+        cena.add(marte)
+
+    Parâmetros
+        radius (float, opcional): Raio de Marte. Padrão é RENDER_MARS_RADIUS.
+        resolution (tuple, opcional): Resolução da esfera (u, v). Padrão é (101, 51).
+        texture (str, opcional): URL ou caminho da textura diurna de Marte. Padrão é uma textura pública.
+        dark_texture (str, opcional): URL ou caminho da textura noturna. Padrão é textura preta.
+        shading (tuple, opcional): Parâmetros de sombreamento da superfície. Padrão é (0.25, 0.25, 1).
+        **kwargs (dict, opcional): Argumentos adicionais herdados de TexturedSurface.
+
+    Observações
+        Sombreamento e opacidade podem ser ajustados para compor cenas realistas.
+    """
     def __init__(
         self,
         radius=RENDER_MARS_RADIUS,
@@ -1360,6 +1715,29 @@ class Mars(TexturedSurface):
         self.set_shading(*shading)
 
 class Sun(Group):
+    """
+    O que faz
+    Agrupa uma superfície texturizada do Sol com halos de brilho próximos e amplos, oferecendo controles práticos de intensidade, tamanho e opacidade.
+
+    Como usar
+        sol = Sun(radius=RENDER_SUN_RADIUS, near_glow_ratio=0.2, big_glow_ratio=0.8)
+        cena.add(sol)
+
+    Parâmetros
+        radius (float, opcional): Raio do Sol. Padrão é RENDER_SUN_RADIUS.
+        texture (str, opcional): URL ou caminho da textura solar. Padrão é uma textura pública.
+        near_glow_ratio (float, opcional): Razão do raio do halo interno em relação ao raio solar. Padrão é 0.0.
+        near_glow_factor (float, opcional): Intensidade do brilho interno. Padrão é 5.
+        big_glow_ratio (float, opcional): Razão do raio do halo externo em relação ao raio solar. Padrão é 0.7*RENDER_SUN_RADIUS.
+        big_glow_factor (float, opcional): Intensidade do brilho externo. Padrão é 1.
+        big_glow_opacity (float, opcional): Opacidade do brilho externo. Padrão é 0.35.
+        shading (tuple, opcional): Parâmetros de sombreamento. Padrão é (0, 0, 0).
+        edge (np.ndarray ou direção, opcional): Posição de ancoragem na tela via to_edge. Padrão é LEFT.
+        **kwargs (dict, opcional): Argumentos adicionais herdados de TexturedSurface e Group.
+
+    Observações
+        Os métodos set_* permitem alterar dinamicamente brilho e texturas após a criação do objeto.
+    """
     def __init__(
         self,
         radius=RENDER_SUN_RADIUS,
@@ -1427,6 +1805,24 @@ class Sun(Group):
         self.sun_surface.set_shading(*shading)
         
 class Earth(TexturedSurface):
+    """
+    O que faz
+    Cria um globo terrestre texturizado com opção de nuvens animadas e texturas diurna e noturna.
+
+    Como usar
+        terra = Earth(radius=RENDER_EARTH_RADIUS, clouds=True)
+        cena.add(terra)
+
+    Parâmetros
+        radius (float, opcional): Raio da Terra. Padrão é RENDER_EARTH_RADIUS.
+        clouds (bool, opcional): Habilita camada de nuvens com leve rotação. Padrão é True.
+        resolution (tuple, opcional): Resolução da esfera (u, v). Padrão é (101, 51).
+        day_texture (str, opcional): URL ou caminho da textura diurna. Padrão é uma textura pública.
+        night_texture (str, opcional): URL ou caminho da textura noturna. Padrão é uma textura pública.
+
+    Observações
+        O globo é rotacionado 90 graus em Z para alinhar mapas comuns com a cena.
+    """
     def __init__(self, radius=RENDER_EARTH_RADIUS, clouds=True, resolution = (101,51),
                  day_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Whole_world_-_land_and_oceans.jpg/1280px-Whole_world_-_land_and_oceans.jpg",
                  night_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/The_earth_at_night.jpg/1280px-The_earth_at_night.jpg"):
@@ -1440,6 +1836,22 @@ class Earth(TexturedSurface):
             self.add(nuvem)
 
 class Clouds(TexturedSurface):
+    """
+    O que faz
+    Adiciona uma camada semitransparente de nuvens ao redor da Terra, com possibilidade de animação.
+
+    Como usar
+        nuvens = Clouds(radius=RENDER_EARTH_RADIUS*1.02)
+        self.add(nuvens)
+
+    Parâmetros
+        radius (float, opcional): Raio da camada de nuvens. Padrão é RENDER_EARTH_RADIUS*1.02.
+        day_texture (str, opcional): URL ou caminho da textura das nuvens. Padrão é um PNG transparente.
+        night_texture (str, opcional): URL ou caminho da textura noturna das nuvens. Padrão é um PNG transparente.
+
+    Observações
+        A opacidade é reduzida para 0.2 e o sombreamento é neutralizado para efeito atmosférico suave.
+    """
     def __init__(self, radius=RENDER_EARTH_RADIUS*1.02,
                  day_texture="https://www.nicepng.com/png/full/120-1200066_earth-clouds-png-banner-library-library-earth-clouds.png",
                  night_texture="https://www.nicepng.com/png/full/120-1200066_earth-clouds-png-banner-library-library-earth-clouds.png"):
@@ -1453,15 +1865,23 @@ class Clouds(TexturedSurface):
 
 class PlanoRetangular(Surface):
     """
-    Representa um plano retangular no plano XY, utilizando a classe Surface do ManimGL.
+    O que faz
+    Cria um plano retangular no plano XY como superfície paramétrica, útil como fundo, painel ou base para anotações.
 
-    Parâmetros:
-        largura (float, opcional): Tamanho no eixo X. Padrão é 4.
-        altura (float, opcional): Tamanho no eixo Y. Padrão é 4.
-        cor (Color, opcional): Cor do plano. Padrão é BLUE.
-        opacidade (float, opcional): Opacidade do plano. Padrão é 1.
-        resolucao (tuple, opcional): Resolução da malha da superfície. Padrão é (20, 20).
-        **kwargs: Argumentos adicionais para a classe Surface.
+    Como usar
+        plano = PlanoRetangular(largura=10, altura=6, cor=BLUE, opacidade=0.5)
+        cena.add(plano)
+
+    Parâmetros
+        largura (float, opcional): Extensão no eixo X do plano. Padrão é 10.
+        altura (float, opcional): Extensão no eixo Y do plano. Padrão é 10.
+        cor (Color, opcional): Cor de preenchimento do plano. Padrão é BLUE.
+        opacidade (float, opcional): Transparência do preenchimento. Padrão é 1.
+        resolucao (tuple, opcional): Resolução da malha paramétrica. Padrão é (20, 20).
+        **kwargs (dict, opcional): Argumentos adicionais herdados de Surface.
+
+    Observações
+        A parametrização usa u em x e v em y, ambos no plano Z igual a zero.
     """
     def __init__(self, largura=10, altura=10, cor=BLUE, opacidade=1, resolucao=(20, 20), **kwargs):
         self.largura = largura
