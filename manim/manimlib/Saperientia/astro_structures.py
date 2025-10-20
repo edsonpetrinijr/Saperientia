@@ -746,7 +746,7 @@ class Equador(GrandeCirculo):
         cor (Color, opcional): Cor do traço. Padrão é YELLOW_D.
         raio (float, opcional): Raio da esfera. Padrão é RENDER_CELESTIAL_SPHERE_RADIUS.
     """
-    def __init__(self, latitude, cor=YELLOW_D, raio=RENDER_CELESTIAL_SPHERE_RADIUS):
+    def __init__(self, latitude, cor=YELLOW_D, raio=RENDER_CELESTIAL_SPHERE_RADIUS, **kwargs):
 
         # Converte a latitude para radianos
         latitude_rad = np.radians(latitude)
@@ -757,7 +757,7 @@ class Equador(GrandeCirculo):
         vetor_normal = np.array([0, np.cos(latitude_rad), np.sin(latitude_rad)])
         
         # Chama o construtor da classe pai para criar o grande círculo
-        super().__init__(vetor_normal=vetor_normal, raio=raio, cor=cor)
+        super().__init__(vetor_normal=vetor_normal, raio=raio, cor=cor, **kwargs)
 
 class Grade(VGroup):
     """
@@ -1672,8 +1672,8 @@ class Moon(TexturedSurface):
         self,
         radius=RENDER_MOON_RADIUS,
         resolution=(101, 51),
-        texture="https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Moon_texture.jpg/2560px-Moon_texture.jpg",
-        dark_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Black_colour.jpg/1536px-Black_colour.jpg",
+        texture="data_image/moon.jpg",
+        dark_texture="data_image/black.jpg",
         shading=(0.25, 0.25, 1),
         **kwargs
     ):
@@ -1705,8 +1705,153 @@ class Mars(TexturedSurface):
         self,
         radius=RENDER_MARS_RADIUS,
         resolution=(101, 51),
-        texture="https://upload.wikimedia.org/wikipedia/commons/7/70/Solarsystemscope_texture_8k_mars.jpg",
-        dark_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Black_colour.jpg/1536px-Black_colour.jpg",
+        texture="data_image/mars.jpg",
+        dark_texture="data_image/black.jpg",
+        shading=(0.25, 0.25, 1),
+        **kwargs
+    ):
+        sphere = Sphere(radius=radius, resolution=resolution)
+        super().__init__(sphere, texture, dark_texture, **kwargs)
+        self.set_shading(*shading)
+
+class Mercury(TexturedSurface):
+    """
+    O que faz
+    Cria uma esfera texturizada representando Mercúrio, com controle de sombreamento e textura noturna.
+
+    Como usar
+        mercurio = Mercury(radius=RENDER_MERCURY_RADIUS)
+        cena.add(mercurio)
+
+    Parâmetros
+        radius (float, opcional): Raio de Mercúrio. Padrão é RENDER_MERCURY_RADIUS.
+        resolution (tuple, opcional): Resolução da esfera (u, v). Padrão é (101, 51).
+        texture (str, opcional): Caminho da textura diurna. Padrão é "mercury.jpg".
+        dark_texture (str, opcional): Caminho da textura noturna. Padrão é preto.
+        shading (tuple, opcional): Parâmetros de sombreamento da superfície. Padrão é (0.25, 0.25, 1).
+        **kwargs (dict, opcional): Argumentos adicionais herdados de TexturedSurface.
+    """
+    def __init__(
+        self,
+        radius=RENDER_MERCURY_RADIUS,
+        resolution=(101, 51),
+        texture="data_image/mercury.jpg",
+        dark_texture="data_image/black.jpg",
+        shading=(0.25, 0.25, 1),
+        **kwargs
+    ):
+        sphere = Sphere(radius=radius, resolution=resolution)
+        super().__init__(sphere, texture, dark_texture, **kwargs)
+        self.set_shading(*shading)
+
+
+class Venus(TexturedSurface):
+    """
+    O que faz
+    Cria uma esfera texturizada representando Vênus, com controle de sombreamento e textura noturna.
+
+    Como usar
+        venus = Venus(radius=RENDER_VENUS_RADIUS)
+        cena.add(venus)
+    """
+    def __init__(
+        self,
+        radius=RENDER_VENUS_RADIUS,
+        resolution=(101, 51),
+        texture="data_image/venus.jpg",
+        dark_texture="data_image/black.jpg",
+        shading=(0.25, 0.25, 1),
+        **kwargs
+    ):
+        sphere = Sphere(radius=radius, resolution=resolution)
+        super().__init__(sphere, texture, dark_texture, **kwargs)
+        self.set_shading(*shading)
+
+
+class Jupiter(TexturedSurface):
+    """
+    O que faz
+    Cria uma esfera texturizada representando Júpiter, com controle de sombreamento e textura noturna.
+
+    Como usar
+        jupiter = Jupiter(radius=RENDER_JUPITER_RADIUS)
+        cena.add(jupiter)
+    """
+    def __init__(
+        self,
+        radius=RENDER_JUPITER_RADIUS,
+        resolution=(101, 51),
+        texture="data_image/jupiter.jpg",
+        dark_texture="data_image/black.jpg",
+        shading=(0.25, 0.25, 1),
+        **kwargs
+    ):
+        sphere = Sphere(radius=radius, resolution=resolution)
+        super().__init__(sphere, texture, dark_texture, **kwargs)
+        self.set_shading(*shading)
+
+
+class Saturn(TexturedSurface):
+    """
+    O que faz
+    Cria uma esfera texturizada representando Saturno, com controle de sombreamento e textura noturna.
+
+    Como usar
+        saturno = Saturn(radius=RENDER_SATURN_RADIUS)
+        cena.add(saturno)
+    """
+    def __init__(
+        self,
+        radius=RENDER_SATURN_RADIUS,
+        resolution=(101, 51),
+        texture="data_image/saturn.jpg",
+        dark_texture="data_image/black.jpg",
+        shading=(0.25, 0.25, 1),
+        **kwargs
+    ):
+        sphere = Sphere(radius=radius, resolution=resolution)
+        super().__init__(sphere, texture, dark_texture, **kwargs)
+        self.set_shading(*shading)
+
+
+class Uranus(TexturedSurface):
+    """
+    O que faz
+    Cria uma esfera texturizada representando Urano, com controle de sombreamento e textura noturna.
+
+    Como usar
+        urano = Uranus(radius=RENDER_URANUS_RADIUS)
+        cena.add(urano)
+    """
+    def __init__(
+        self,
+        radius=RENDER_URANUS_RADIUS,
+        resolution=(101, 51),
+        texture="data_image/uranus.jpg",
+        dark_texture="data_image/black.jpg",
+        shading=(0.25, 0.25, 1),
+        **kwargs
+    ):
+        sphere = Sphere(radius=radius, resolution=resolution)
+        super().__init__(sphere, texture, dark_texture, **kwargs)
+        self.set_shading(*shading)
+
+
+class Neptune(TexturedSurface):
+    """
+    O que faz
+    Cria uma esfera texturizada representando Netuno, com controle de sombreamento e textura noturna.
+
+    Como usar
+        netuno = Neptune(radius=RENDER_NEPTUNE_RADIUS)
+        cena.add(netuno)
+    """
+    def __init__(
+        self,
+        radius=RENDER_NEPTUNE_RADIUS,
+        resolution=(101, 51),
+        texture="data_image/neptune.jpg",
+        dark_texture="data_image/black.jpg",
         shading=(0.25, 0.25, 1),
         **kwargs
     ):
@@ -1741,7 +1886,7 @@ class Sun(Group):
     def __init__(
         self,
         radius=RENDER_SUN_RADIUS,
-        texture="https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Map_of_the_full_sun.jpg/1280px-Map_of_the_full_sun.jpg",
+        texture="data_image/sun.jpg",
         near_glow_ratio=0.0,
         near_glow_factor=5,
         big_glow_ratio=0.7*RENDER_SUN_RADIUS,
@@ -1824,12 +1969,11 @@ class Earth(TexturedSurface):
         O globo é rotacionado 90 graus em Z para alinhar mapas comuns com a cena.
     """
     def __init__(self, radius=RENDER_EARTH_RADIUS, clouds=True, resolution = (101,51),
-                 day_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Whole_world_-_land_and_oceans.jpg/1280px-Whole_world_-_land_and_oceans.jpg",
-                 night_texture="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/The_earth_at_night.jpg/1280px-The_earth_at_night.jpg"):
+                 day_texture="data_image/earth_day_high.jpg",
+                 night_texture="data_image/earth_night.jpg"):
         sphere = Sphere(radius=radius,resolution=resolution)
         super().__init__(sphere, day_texture, night_texture)
         self.rotate(PI/2, Z_AXIS)
-        
         if clouds:
             nuvem = Clouds(radius*1.02)
             nuvem.add_updater(lambda n,dt:n.rotate(0.1*dt,OUT))
@@ -1853,8 +1997,8 @@ class Clouds(TexturedSurface):
         A opacidade é reduzida para 0.2 e o sombreamento é neutralizado para efeito atmosférico suave.
     """
     def __init__(self, radius=RENDER_EARTH_RADIUS*1.02,
-                 day_texture="https://www.nicepng.com/png/full/120-1200066_earth-clouds-png-banner-library-library-earth-clouds.png",
-                 night_texture="https://www.nicepng.com/png/full/120-1200066_earth-clouds-png-banner-library-library-earth-clouds.png"):
+                 day_texture="data_image/clouds.png",
+                 night_texture="data_image/clouds.png"):
         sphere = Sphere(radius=radius)
         super().__init__(sphere, day_texture, night_texture)
         self.set_shading(0,0,0).set_opacity(0.2)

@@ -2,9 +2,12 @@ from manimlib import *
 from manimlib.Saperientia.astro_structures import * 
 from manimlib.Saperientia.stellarium import * 
 from manimlib.Saperientia.Variables import * 
+from manimlib.Saperientia.sap_rate_func import * 
 from manimlib.Saperientia.camera import * 
+from manimlib.Saperientia.video_mobject import *
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+
 
 class Teste(ThreeDScene):
     def construct(self):
@@ -275,7 +278,7 @@ class Terra(ThreeDScene):
         terra.rotate_about_origin(150*DEGREES,Z_AXIS)
         self.frame.set_field_of_view(1.3)
         self.wait(3)
-        phi,theta,gamma=convert_camera_angles(80,180,0,90+23)
+        phi,theta,convert_camera_angles(80,180,0,90+23)
         self.play(self.frame.animate.reorient(theta,phi,gamma,p1*1.07,0.5),run_time=3)
         phi,theta,gamma=convert_camera_angles(110,180,0,90+23)
         self.play(self.frame.animate.reorient(theta,phi,gamma,p1*1.001,0.001),run_time=3)
@@ -739,7 +742,7 @@ class HeitorCarta(Scene):
 class TimeEquation(Scene):
     def construct(self):
         self.frame.reorient(90,45,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*2)
-        terra = Earth(radius=2*RENDER_EARTH_RADIUS,day_texture="data_image\earth_day_high.jpg",night_texture="data_image\earth_night.jpg",clouds=False)
+        terra = Earth(radius=2*RENDER_EARTH_RADIUS,day_texture="data_image/earth_day_high.jpg",night_texture="data_image/earth_night.jpg",clouds=False)
         esfera_celeste = EsferaCeleste()
         light = self.camera.light_source
         
@@ -868,8 +871,6 @@ def _latlon_to_xyz(lat_deg, lon_deg, R):
     z = R * np.sin(lat)
     return np.array([x, y, z], dtype=float)
 
-
-
 class NaSuper2(Scene):
     def construct(self):
         stars_data = extract_star_data()
@@ -962,3 +963,347 @@ class NaSuper2(Scene):
   
 
         self.wait(0.5)
+  
+class Conversion2(Scene):
+    def construct(self):
+        min = Tex(r"1^{' min}").scale(2).shift(LEFT*2+UP)
+        iguala = Tex(r"=\frac{1}{60} \times 1^{\circ h}").scale(2).shift(RIGHT*2+UP)
+        iguala2 = Tex(r"\frac{1}{60} \times 1^{\circ h}").scale(2).shift(RIGHT*3).shift(DOWN*2)
+        iguala3 = Tex(r"\frac{1}{3600}").scale(2).shift(DOWN*2+RIGHT)
+        seg = Tex(r"1^{'' s}",r"=\frac{1}{60}", r"\times", r"1^{' min}").scale(2).shift(DOWN*2)
+        self.play(Write(min))
+        self.wait(2)
+        self.play(Write(iguala))
+        self.wait(1)
+        self.play(Write(seg))
+        self.wait(2)
+        self.play(ReplacementTransform(seg[-5:],iguala2))
+        self.wait(2)
+        self.play(FadeOut(seg[-10:-5]),FadeOut(iguala2[0:4]),Write(iguala3))
+    
+class Conversion3(Scene):
+    def construct(self):      
+        
+        arcseconds = Tex(r"1''").scale(2).shift(LEFT*6)
+        
+        arrow1 = CurvedArrow(
+            arcseconds.get_right() + RIGHT*2.5,
+            arcseconds.get_right() + RIGHT*0.5,
+            angle=PI/3
+        )
+        
+        div60_1 = Tex(r"\frac{1}{60}").scale(1)
+        div60_1.next_to(arrow1, DOWN, buff=0.3)
+        
+        minutes = Tex(r"1'").scale(2)
+        minutes.move_to(arcseconds.get_center() + RIGHT*4)
+        
+        arrow2 = CurvedArrow(
+            minutes.get_right() + RIGHT*2.5,
+            minutes.get_right() + RIGHT*0.5,
+            angle=PI/3
+        )
+        
+        div60_2 = Tex(r"\frac{1}{60}").scale(1)
+        div60_2.next_to(arrow2, DOWN, buff=0.3)
+        degrees = Tex(r"1^{\circ}").scale(2)
+        degrees.move_to(minutes.get_center() + RIGHT*4.5)
+        self.play(Write(degrees))
+        self.wait(1)
+        
+        arrow3 = CurvedArrow(
+            degrees.get_top() + UP*0.5,
+            arcseconds.get_top() + UP*0.5,
+            angle=PI/3
+        )
+        
+        
+        div60_3 = Tex(r"\frac{1}{3600}").scale(1)
+        div60_3.next_to(arrow3, DOWN, buff=-1.1)
+        
+        self.play(ShowCreation(arrow2))
+        self.play(Write(div60_2))
+        self.wait(1)
+        self.play(Write(minutes))
+        self.wait(1)
+        
+        self.play(ShowCreation(arrow1))
+        self.play(Write(div60_1))
+        self.wait(1)
+        self.play(Write(arcseconds))
+        self.wait(3)
+        self.play(ShowCreation(arrow3))
+        self.play(Write(div60_3))
+        self.wait(1)
+        
+class OLAA(Scene):
+    def construct(self):
+        self.frame.reorient(90,45,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*2)
+        light = self.camera.light_source
+        esfera_celeste = EsferaCeleste()
+        superficie = SuperficieObservador()
+        Norte = Tex("N",font_size=7).next_to(superficie.get_corner(UP),0.2* UP)
+        Leste = Tex("E",font_size=7).next_to(superficie.get_corner(RIGHT),0.2* RIGHT)
+        Sul = Tex("S",font_size=7).next_to(superficie.get_corner(DOWN),0.2* DOWN)
+        Oeste = Tex("O",font_size=7).next_to(superficie.get_corner(LEFT),0.2* LEFT)
+        self.add(Norte,Leste,Sul,Oeste)
+        self.add(esfera_celeste, superficie)
+        esfera_celeste.add_updater(lambda m: self.add(esfera_celeste))
+        # self.embed()
+        
+        eixo = EixoPolar(-22.9)
+        self.play(ShowCreation(eixo))
+        
+        
+        marcador = MarcadorAnguloExterno(PontoAstro(22.9,180),PontoAstro(0,180),cor=PURPLE,espessura=4)
+        latitude = Tex(r'\varphi',font_size=3).rotate(90*DEGREES,axis=RIGHT).rotate(90*DEGREES,axis=OUT).move_to(marcador.get_center()*1.1)
+        self.play(ShowCreation(marcador),Write(latitude))
+        
+        
+        equador = Equador(-22.9)
+        self.play(ShowCreation(equador))
+        
+        meridianolocal = MeridianoLocal()
+        self.play(ShowCreation(meridianolocal))
+        
+        sol = Sun(radius=0.008,texture="data_image/sun.jpg").move_to(P(51,0).get_center())
+        self.play(FadeIn(sol))
+        polo = PontoAstroEquatorial(66.56,270,-22.9,43)
+        tsl = ValueTracker(43)
+        ecliptica = GrandeCirculo(polo.get_center())
+        self.play(ShowCreation(ecliptica))
+        
+        ecliptica.add_updater(lambda m:m.become(GrandeCirculo(PontoAstroEquatorial(66.56,270,-22.9,tsl.get_value()).get_center())))
+        self.play(tsl.animate.increment_value(94))
+        self.play(tsl.animate.increment_value(-94))
+        ecliptica.clear_updaters()
+        self.embed()
+
+
+class FasesLua(Scene):
+    def construct(self):
+        stars_data = extract_star_data()
+        stars = Group()
+        for x, y, z, size, color in stars_data:
+            star = DotCloud(
+                points=[np.array([x, y, z])],
+                color=color,
+                radius=size,
+                opacity=0.75
+            )
+            stars.add(star)
+        self.add(stars)
+
+        self.frame.reorient(300,80,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*7)
+        terra = Earth().rotate(180*DEGREES,axis=OUT)
+        sun = Sun(big_glow_ratio=0.1).scale(0.1).move_to([RENDER_EARTH_RADIUS*100,0,0])
+        self.camera.light_source.move_to(sun.get_center())
+        moon = Moon().move_to([-RENDER_EARTH_RADIUS*6,0,0]).rotate(180*DEGREES,axis=OUT)
+        self.add(terra,sun,moon)
+        self.wait(5)
+        self.play(self.frame.animate.reorient(420,80,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*7),run_time=2)
+        self.wait(0.2)
+        self.play(self.frame.animate.reorient(420,80,0,moon.get_center(),CELESTIAL_SPHERE_RADIUS*5),run_time=2)
+        self.wait(0.2)
+        self.play(self.frame.animate.reorient(420,80,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*7),run_time=2)
+        self.wait(1)
+        angle = ValueTracker(0)
+        
+        moon.add_updater(lambda m:m.move_to([-np.cos(angle.get_value())*RENDER_EARTH_RADIUS*6,-np.sin(angle.get_value())*RENDER_EARTH_RADIUS*6,0]))
+        moon.add_updater(lambda m:self.add(moon))
+        self.play(angle.animate.increment_value(PI),Rotate(moon,PI+2*PI,axis=OUT),run_time=7)        
+        self.play(self.frame.animate.reorient(300,70,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*7),run_time=3)
+        self.wait(3)
+        self.play(self.frame.animate.reorient(360,60,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*6.5),run_time=3)
+        self.play(angle.animate.increment_value(PI),Rotate(moon,PI,axis=OUT),run_time=15,rate_func=linear)
+        self.wait(1)        
+        self.play(angle.animate.increment_value(-PI/2),Rotate(moon,-PI/2,axis=OUT),run_time=1)
+        self.play(self.frame.animate.reorient(360,40,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*5),run_time=1)
+
+
+class PontosCardeais(VGroup):
+    """
+    Cria um objeto que representa os pontos cardeais (Norte, Sul, Leste, Oeste) em torno de um círculo.
+
+    Parâmetros:
+        raio (float): Raio do círculo (padrão: 2).
+        color (Color): Cor dos pontos cardeais e do círculo (padrão: WHITE).
+        font_size (int): Tamanho da fonte dos pontos cardeais (padrão: 40).
+        weight (str): Peso da fonte (padrão: BOLD).
+    """
+    def __init__(self, raio=1*RENDER_CELESTIAL_SPHERE_RADIUS, color=WHITE, font_size=10, weight=BOLD):
+        super().__init__()
+
+        # Cria o círculo central para os pontos cardeais
+        mobject = Circle(radius=raio, color=color)
+
+        # Cria os textos para os pontos cardeais (Norte, Sul, Leste, Oeste)
+        north = Text("N", font_size=font_size, weight=weight, color=color).next_to(mobject.get_top(), UP/4,buff=0).set_z_index(2)
+        south = Text('S', font_size=font_size, weight=weight, color=color).next_to(mobject.get_bottom(), DOWN/4,buff=0).set_z_index(2)
+        west = Text("O", font_size=font_size, weight=weight, color=color).next_to(mobject.get_left(), LEFT/4,buff=0).set_z_index(2)
+        east = Text("L", font_size=font_size, weight=weight, color=color).next_to(mobject.get_right(), RIGHT/4,buff=0).set_z_index(2)
+
+        # Adiciona os pontos cardeais ao grupo
+        self.add(north, south, west, east)
+
+
+class Observer(Scene):
+    def construct(self):
+        superficie=SuperficieObservador()
+        self.add(superficie)
+        esfera = EsferaCeleste()
+        equador = Equador(15,cor=BLUE_C,espessura=3*LINE_SIZE,)
+        ecliptica = GrandeCirculo([0.1,-1,0.2],cor=ORANGE,espessura=3*LINE_SIZE)
+        self.add(esfera,equador,ecliptica)
+        esfera.add_updater(lambda m: self.add(esfera))
+        self.frame.reorient(90,86,0,ORIGIN+[0,0,0.1*RENDER_CELESTIAL_SPHERE_RADIUS],RENDER_CELESTIAL_SPHERE_RADIUS*0.1)
+        direcao = PontosCardeais()
+        self.play(ShowCreation(direcao))
+        self.play(self.frame.animate.reorient(90,76,0,ORIGIN+[0,0,0.1*RENDER_CELESTIAL_SPHERE_RADIUS],RENDER_CELESTIAL_SPHERE_RADIUS*5))
+        self.embed()
+        
+class Observer2(Scene):
+    def construct(self):
+        superficie=SuperficieObservador()
+        self.add(superficie)
+        equador = Equador(0,cor=BLUE_C,espessura=3*LINE_SIZE,)
+        esfera = EsferaCeleste()
+        self.add(esfera,equador)
+        esfera.add_updater(lambda m: self.add(esfera))
+        self.frame.reorient(90,86,0,ORIGIN+[0,0,0.1*RENDER_CELESTIAL_SPHERE_RADIUS],RENDER_CELESTIAL_SPHERE_RADIUS*0.1)
+        direcao = PontosCardeais()
+        self.wait(1)
+        earth = Earth(radius=RENDER_CELESTIAL_SPHERE_RADIUS*10,clouds=False).rotate(-90*DEG,axis=RIGHT).align_to(superficie,OUT)
+        equador2 = Equador(0,cor=BLUE_C,espessura=3*LINE_SIZE,raio=RENDER_CELESTIAL_SPHERE_RADIUS*100)
+        equador3 = Equador(0,cor=BLUE_C,espessura=3*LINE_SIZE,raio=RENDER_CELESTIAL_SPHERE_RADIUS*10.1).move_to(earth.get_center())
+        self.play(
+            self.frame.animate.reorient(90,60,0,ORIGIN+[0,0,0.1*RENDER_CELESTIAL_SPHERE_RADIUS],RENDER_CELESTIAL_SPHERE_RADIUS*15),
+            FadeIn(earth),
+            FadeIn(equador2),FadeIn(equador3),run_time=3)
+        group = Group()
+        self.wait(4)
+        eixo = EixoPolar(0,espessura=0.06*ELEMENTS_SCALE,comprimento=4*RENDER_CELESTIAL_SPHERE_RADIUS).set_z_index(20)
+        eixo2 = EixoPolar(0,espessura=0.1*ELEMENTS_SCALE,comprimento=100*RENDER_CELESTIAL_SPHERE_RADIUS).set_z_index(2).move_to(earth.get_center())
+        self.play(ShowCreation(eixo))
+        self.play(ShowCreation(eixo2))
+
+
+        group.add(superficie,esfera)
+        eixo.add_updater(lambda m: self.add(eixo.move_to(group.get_center())))
+        equador.add_updater(lambda m: m.move_to(eixo.get_center()))
+        esfera.clear_updaters()
+        esfera.add_updater(lambda m: self.add(esfera))
+        esfera.deactivate_depth_test()
+        self.play(
+                  Rotate(group,15*DEG,RIGHT,about_point=earth.get_center()),run_time=10
+                  )
+        
+        self.play(self.frame.animate.reorient(90,80,0,earth.get_center()+[0,0,4*RENDER_CELESTIAL_SPHERE_RADIUS],RENDER_CELESTIAL_SPHERE_RADIUS*20),run_time=2)
+        self.wait(2)
+        self.play(
+            Rotate(group,-15*DEG,RIGHT,about_point=earth.get_center()),run_time=2
+                )         
+        self.play(
+            Rotate(group,90*DEG,RIGHT,about_point=earth.get_center()),run_time=6
+                )         
+        self.play(self.frame.animate.reorient(30,80,0,earth.get_center()+[0,0,4*RENDER_CELESTIAL_SPHERE_RADIUS],RENDER_CELESTIAL_SPHERE_RADIUS*20),run_time=2)
+#NESSE OBSERVER 2 DA PRA VER QUE A TEXTURA DA TERRA APARECE DO OUTRO LADO, TALVEZ DE PRA USAR ISSO DE TEXTURA PRA COLOCAR ESFERA CELESTE E TBM FAZER A ESFERA CELESTE 
+        
+class DevelopSky(Scene):
+    def construct(self):
+        stars,_ = Stars()
+        self.add(stars)
+        self.frame.reorient(0,70,0,ORIGIN,2)
+        self.play(stars.animate.become(Stars(sphere_mode=True)[0]),run_time=7,rate_func=fast_to_slow)
+        self.play(stars.animate.become(Stars(ayre=True)[0]),run_time=4)
+        self.frame.add_ambient_rotation(0.5)
+        self.wait(5)
+        
+class HRDiagram(Scene):
+    def construct(self):
+        self.frame.reorient(170,130,0,ORIGIN,3)
+        axes = Axes().shift((LEFT+DOWN)*2)
+        stars0,_ = Stars(hr_mode_radius=True,size_factor=4)
+        stars1,_ = Stars(hr_mode=True,size_factor=4)
+        stars2,_ = Stars(sphere_mode=True)
+        stars3,_ = Stars()
+        self.add(stars3)
+        self.wait()
+        self.play(self.frame.animate.reorient(0,40,0,ORIGIN,3),run_time=3)
+        self.play(stars3.animate.become(stars2),run_time=7,rate_func=fast_to_slow)
+        self.wait(3)
+        self.play(stars3.animate.become(stars1),ShowCreation(axes),self.frame.animate.reorient(0,7,0,ORIGIN,6),run_time=3)
+        self.wait(3)
+        surface = ParametricSurface(
+            lambda u, v: np.array([u,v, np.sqrt((10**((v+1.5)*2))*3.8e26/(4*PI*5.67e-8*(4600*((1/(0.92*((u/2)+0.656)+1.7))+(1/(0.92*((u/2)+0.656)+0.62))))**4))/695_500_000/15]),
+            u_range=[-2, 6],
+            v_range=[-2, 6],
+            resolution=(50, 50),
+        ).set_color(PURPLE).set_opacity(0.7).set_z_index(-3)
+        self.play(stars3.animate.become(stars0),self.frame.animate.reorient(-30,90,0,ORIGIN+[0,0,2],8),run_time=3)
+        self.wait(3)
+        self.play(ShowCreation(surface))
+        self.frame.add_ambient_rotation(0.5)
+        self.wait(13)
+        self.play(self.frame.animate.reorient(phi_degrees=150,gamma_degrees=0,center=ORIGIN+[0,0,2],height=6))
+        self.wait(3)
+        
+class DevelopSky2(Scene):
+    def construct(self):
+        self.frame.reorient(303.54-90,105,0,ORIGIN,0.0001)
+        stars,_ = Stars(time_years=-8000)
+        self.frame.set_field_of_view(60*DEGREES)
+        self.add(stars)
+        teste = create_constellation_boundary_lines(radius=10000,constellation="AQL")
+        stars2,_ = Stars(time_years=92)
+        self.add(teste)
+        self.play(self.frame.animate.set_field_of_view(1*DEGREES),run_time=4)
+        self.play(stars.animate.become(stars2),run_time=6)
+
+#Ep3 
+
+class EixoES(Scene):
+    def construct(self):
+        stars,_ = Stars()
+        self.add(stars)
+        self.frame.reorient(90,90,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*1)
+        terra = Earth(clouds=False)
+        self.add(terra)
+        terra.add_updater(lambda m,dt: m.rotate(0.6*dt,axis=OUT))
+        self.wait(15)
+        eixo = EixoPolar(90,espessura=0.02*ELEMENTS_SCALE)
+        p1 = P(90,0,cor=PURPLE,raio=RENDER_EARTH_RADIUS).scale(0.4)
+        p2 = P(-90,0,cor=PURPLE,raio=RENDER_EARTH_RADIUS).scale(0.4)
+        self.play(ShowCreation(p1),ShowCreation(p2))
+        self.play(self.frame.animate.reorient(90,10,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*0.5),run_time=2)
+        self.wait(5)
+        self.play(self.frame.animate.reorient(100,170,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*0.5),run_time=2)
+        self.wait(5)
+        self.play(self.frame.animate.reorient(90,90,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*2),run_time=2)
+        self.play(ShowCreation(eixo))
+        self.wait(5)
+        label1 = Text("Norte",font_size=3).scale(1).rotate(90*DEGREES,axis=RIGHT).rotate(90*DEGREES,axis=OUT).next_to(p1.get_center(),OUT,buff=0.01)
+        label2 = Text("Sur",font_size=3).scale(1).rotate(90*DEGREES,axis=RIGHT).rotate(90*DEGREES,axis=OUT).next_to(p2.get_center(),IN,buff=0.01)
+        self.play(Write(label1))
+        self.play(Write(label2))
+        self.wait(10)
+        terra.clear_updaters()
+        self.play(terra.animate.become(Earth(clouds=False).rotate(165*DEGREES,axis=OUT)))
+        self.play(self.frame.animate.reorient(120,90,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*1),run_time=2)
+        self.play(FadeOut(label1),FadeOut(label2))
+        pessoa = PontoAstro(0,90,cor=BLUE,raio=RENDER_EARTH_RADIUS).scale(0.4)
+        self.play(FadeIn(pessoa))
+        self.wait(2)
+        arco = GrandeArco(pessoa,p1,cor=GREEN)
+        self.play(ShowCreation(arco))
+        seta= Seta(pessoa,0,cor=GREEN,espessura=LINE_SIZE*2,comprimento=0.01)
+        self.wait(5)
+        self.play(ShowCreation(seta))
+        self.wait(5)
+        self.play(self.frame.animate.reorient(120,20,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*1),run_time=2)
+        self.wait(5)
+        self.play(self.frame.animate.reorient(120,90,0,ORIGIN,CELESTIAL_SPHERE_RADIUS*1),run_time=2)
+        self.wait(2)
+        grade = Grade(raio=RENDER_EARTH_RADIUS,cor_ar=GREEN).set_z_index(10)
+        self.play(ShowCreation(grade[1]))
+        self.play(terra.animate.set_opacity(0.6))
