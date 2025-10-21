@@ -1,7 +1,8 @@
 import numpy as np
-from manimlib.constants import *
 from manimlib.utils.rate_functions import smooth
-
+from manimlib import *
+from manimlib.Saperientia.Variables import *
+from manimlib.Saperientia.stellarium import *
 
 def reorientar_camera(frame, 
                           point,
@@ -75,3 +76,121 @@ class AnimarCamera(Animation):
             epsilon=max(h, 1e-9),
             fovy=fv
         )
+
+
+def on_mouse_scroll(
+    self,
+    point,
+    offset,
+    x_pixel_offset: float,
+    y_pixel_offset: float
+) -> None:
+    event_data = {"point": point, "offset": offset}
+    propagate_event = EVENT_DISPATCHER.dispatch(EventType.MouseScrollEvent, **event_data)
+    if propagate_event is not None and propagate_event is False:
+        return
+
+    rel_offset = y_pixel_offset / self.camera.get_pixel_height()
+    self.frame.set_field_of_view(self.frame.get_field_of_view() - self.scroll_sensitivity * rel_offset)
+
+Scene.on_mouse_scroll = on_mouse_scroll
+
+
+def look_at_coord(self, ra_deg, dec_deg,gamma=0,center=ORIGIN,height=1):
+    """
+    Points the camera at a specific celestial coordinate (RA, Dec).
+    
+    Args:
+        ra_deg: Right Ascension in degrees (0-360)
+        dec_deg: Declination in degrees (-90 to +90)
+    """
+    self.frame.reorient(ra_deg - 90, dec_deg + 90, gamma, center, height)
+
+Scene.look_at_coord = look_at_coord
+
+def look_at_star(self, hip_id, gamma=0, center=ORIGIN, height=1):
+    """
+    Points the camera at a specific star given its HIP (Hipparcos) catalog number.
+    
+    Args:
+        hip_id: Hipparcos catalog number (integer)
+        gamma: Roll angle in degrees (default 0)
+        center: Center point (default ORIGIN)
+        height: Camera height (default 1)
+    """
+    stars_data = extract_star_data()
+    
+    # Find the star with the given HIP ID
+    star = None
+    for star_dic in stars_data:
+        if star_dic["hip"] == hip_id:
+            star = star_dic
+            break
+    
+    if star is None:
+        print(f"Warning: Star with HIP {hip_id} not found")
+        return
+    
+    # Get RA and Dec from the star data
+    ra_deg = star["ra"]
+    dec_deg = star["dec"]
+    
+    # Use look_at_coord to point at the star
+    self.look_at_coord(ra_deg, dec_deg, gamma, center, height)
+
+Scene.look_at_star = look_at_star
+
+def look_at_constellation(self, constellation_code, gamma=0, center=ORIGIN, height=1):
+    """
+    Points the camera at a constellation by calculating its center from asterism stars.
+    
+    Args:
+        constellation_code: 3-letter constellation code (e.g., "Aql", "Ori", "UMa")
+        gamma: Roll angle in degrees (default 0)
+        center: Center point (default ORIGIN)
+        height: Camera height (default 1)
+    """
+    # Constellation data with their asterism lines
+    # Find the constellation (case-insensitive)
+    constellation_code = constellation_code.upper()
+    asterism = None
+    for ast in ASTERISM_DATA:
+        if ast[0].upper() == constellation_code:
+            asterism = ast
+            break
+    
+    if asterism is None:
+        print(f"Warning: Constellation '{constellation_code}' not found")
+        return
+    
+    # Get all unique HIP IDs from the asterism
+    hip_ids = set(asterism[2:])
+    
+    # Load star data
+    stars_data = extract_star_data()
+    star_lookup = {star["hip"]: star for star in stars_data}
+    
+    # Calculate average RA and Dec
+    ra_sum = 0
+    dec_sum = 0
+    count = 0
+    
+    for hip_id in hip_ids:
+        if hip_id in star_lookup:
+            star = star_lookup[hip_id]
+            ra_sum += star["ra"]
+            dec_sum += star["dec"]
+            count += 1
+    
+    if count == 0:
+        print(f"Warning: No stars found for constellation '{constellation_code}'")
+        return
+    
+    # Calculate center
+    ra_center = ra_sum / count
+    dec_center = dec_sum / count
+    
+    # Use look_at_coord to point at the constellation center
+    self.look_at_coord(ra_center, dec_center, gamma, center, height)
+
+Scene.look_at_constellation = look_at_constellation

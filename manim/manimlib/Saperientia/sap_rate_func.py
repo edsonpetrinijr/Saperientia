@@ -6,3 +6,6 @@ def stars_func(t: float, pull_factor: float = 0.9) -> float:
 
 def fast_to_slow(t: float, power: float = 15) -> float:
     return 1 - (1 - t)**power
+
+def slow_to_fast(t: float, power: float = 0.065) -> float:
+    return 1 - (1 - t)**power

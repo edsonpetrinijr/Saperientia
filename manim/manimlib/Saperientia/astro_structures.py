@@ -1269,6 +1269,30 @@ class SetaGrandeCirculo(Seta):
         # Ajustando para melhor renderização 3D
         self.set_shade_in_3d(True)
 
+class PontosCardeais(VGroup):
+    """
+    Cria um objeto que representa os pontos cardeais (Norte, Sul, Leste, Oeste) em torno de um círculo.
+
+    Parâmetros:
+        raio (float): Raio do círculo (padrão: 2).
+        color (Color): Cor dos pontos cardeais e do círculo (padrão: WHITE).
+        font_size (int): Tamanho da fonte dos pontos cardeais (padrão: 40).
+        weight (str): Peso da fonte (padrão: BOLD).
+    """
+    def __init__(self, raio=1*RENDER_CELESTIAL_SPHERE_RADIUS, color=WHITE, font_size=10, weight=BOLD):
+        super().__init__()
+
+        # Cria o círculo central para os pontos cardeais
+        mobject = Circle(radius=raio, color=color)
+
+        # Cria os textos para os pontos cardeais (Norte, Sul, Leste, Oeste)
+        north = Text("N", font_size=font_size, weight=weight, color=color).next_to(mobject.get_top(), UP/4,buff=0).set_z_index(2)
+        south = Text('S', font_size=font_size, weight=weight, color=color).next_to(mobject.get_bottom(), DOWN/4,buff=0).set_z_index(2)
+        west = Text("O", font_size=font_size, weight=weight, color=color).next_to(mobject.get_left(), LEFT/4,buff=0).set_z_index(2)
+        east = Text("L", font_size=font_size, weight=weight, color=color).next_to(mobject.get_right(), RIGHT/4,buff=0).set_z_index(2)
+
+        # Adiciona os pontos cardeais ao grupo
+        self.add(north, south, west, east)
 
 #MARCADORES
 

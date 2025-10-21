@@ -5,11 +5,9 @@ import math
 from manimlib.Saperientia.Variables import * 
 import csv
 
-RADIUS = 10
 
 def rgb_to_hex(rgb):
     return '#' + ''.join(f'{int(round(c * 255)):02X}' for c in rgb)
-
 
 def inverse_interpolate(x0, x1, x):
     return (x - x0) / (x1 - x0)
@@ -69,10 +67,10 @@ def extract_star_data(file_path='data_set/sorted_hygdata_v41.csv'):
         print(f"File not found: {file_path}")
         return []
 
-    for _, row in df.head(7000).iterrows():
+    for _, row in df.head(STAR_NUMBER).iterrows():
         try:
-            # dec = float(row['dec'])
-            # ra = float(row['ra']) * 15  # RA convertido de horas para graus
+            dec = float(row['dec'])
+            ra = float(row['ra']) * 15  # RA convertido de horas para graus
             mag = float(row['mag'])
             distance = float(row['dist'])
             ci = row['ci']
@@ -117,6 +115,8 @@ def extract_star_data(file_path='data_set/sorted_hygdata_v41.csv'):
             "name": row["proper"],
             "hip": row["hip"] if "hip" in row else None,
             "mag": mag,
+            'dec': dec,
+            'ra': ra,
             "distance": distance,
             "ci": ci,
             "lum": lum,
@@ -128,6 +128,81 @@ def extract_star_data(file_path='data_set/sorted_hygdata_v41.csv'):
 
     return stars
 
+def Asterisms(
+            sphere_radius = 10000,
+            opacity = 0.3,
+            time_years = 0,
+            constellations = None,
+            stroke_width = None,
+            ):
+    
+    if stroke_width is None:
+        stroke_width = LINE_SIZE*sphere_radius
+    
+    stars_data = extract_star_data()
+    star_lookup = {}
+
+    # Update star positions with proper motion
+    for star_dic in stars_data:
+        x, y, z = star_dic["x"], star_dic["y"], star_dic["z"]
+        vx, vy, vz = star_dic["vx"], star_dic["vy"], star_dic["vz"]
+        x += time_years * vx * 3.08e16 / MANIM_REAL_SCALE
+        y += time_years * vy * 3.08e16 / MANIM_REAL_SCALE
+        z += time_years * vz * 3.08e16 / MANIM_REAL_SCALE
+        hip = star_dic["hip"]
+        star_dic["x"] = x
+        star_dic["y"] = y
+        star_dic["z"] = z
+        star_lookup[hip] = star_dic
+    
+    if constellations:
+        constellations = [c.upper() for c in constellations]
+    
+    lines = Group()
+    
+    # Process each constellation's asterism data
+    for asterism in ASTERISM_DATA:
+        const_code = asterism[0]
+        
+        # Filter by constellation if specified
+        if constellations and const_code.upper() not in constellations:
+            continue
+        
+        # Extract HIP numbers (skip first two elements: code and line count)
+        hip_numbers = asterism[2:]
+        
+        # Create lines by connecting consecutive pairs
+        for i in range(0, len(hip_numbers) - 1, 2):
+            hip1 = hip_numbers[i]
+            hip2 = hip_numbers[i + 1]
+            
+            if hip1 not in star_lookup or hip2 not in star_lookup:
+                continue
+
+            s1 = star_lookup[hip1]
+            s2 = star_lookup[hip2]
+
+            p1 = np.array([s1["x"], s1["y"], s1["z"]])
+            p2 = np.array([s2["x"], s2["y"], s2["z"]])
+            
+            # Normalize to sphere radius
+            norm1 = np.linalg.norm(p1)
+            norm2 = np.linalg.norm(p2)
+            
+            if norm1 > 0 and norm2 > 0:
+                p1 = p1 * sphere_radius / norm1
+                p2 = p2 * sphere_radius / norm2
+
+                line = Line(
+                    p1, p2,
+                    color=WHITE,
+                    opacity=opacity,
+                ).set_stroke(width=stroke_width,opacity=opacity).set_z_index(-5).deactivate_depth_test()
+                lines.add(line)
+    
+    return lines
+
+#Testar com Arc
 def Stars(  sphere_mode = False, 
             sphere_radius = 1,
             size_factor = 1,
@@ -141,18 +216,16 @@ def Stars(  sphere_mode = False,
     
     stars_data = extract_star_data()
     stars = Group()
-    star_lookup = {}
 
     for star_dic in stars_data:
         x, y, z = star_dic["x"], star_dic["y"], star_dic["z"]
         size = star_dic["size"]
         color = star_dic["color"]
-        hip = star_dic["hip"]
+        # hip = star_dic["hip"]
         distance = star_dic["distance"]
         lum = star_dic["lum"]
         ci=star_dic["ci"]
         
-        star_lookup[hip] = star_dic
         if sphere_mode:
             pos_factor=sphere_radius/distance
             size_pos_factor = size_factor/distance*sphere_radius*0.05
@@ -191,7 +264,6 @@ def Stars(  sphere_mode = False,
             z+=time_years * star_dic["vz"]* 3.08e16 / MANIM_REAL_SCALE
             size_pos_factor = size_factor/70
             opacity=star_opacity
-
             
         if glow: 
             star = GlowDots(
@@ -208,10 +280,10 @@ def Stars(  sphere_mode = False,
                 opacity=opacity
             )
         stars.add(star)
-    return stars,star_lookup
+    return stars
 
 
-def load_constellation_boundaries_clean(csv_file="data_set/constellation_boundaries_correct.csv"):
+def load_constellation_boundaries_clean(csv_file="data_set/constellations.csv"):
     """Load pre-processed constellation boundaries from correct CSV."""
     boundaries = []
     
@@ -285,15 +357,17 @@ def create_boundary_edge(boundary, radius, num_points_dec=2,num_points_ra=8):
     
     return points
 
-def create_constellation_boundary_lines(csv_file="data_set/constellation_boundaries_correct.csv", radius=100, constellation=None, 
-                                       color=BLUE, stroke_width=None, verbose=False):
+def Constellations(csv_file="data_set/constellations.csv", sphere_radius=10000, constellations=None, 
+                   color=BLUE, stroke_width=None, verbose=False):
     """
     Fast function to create constellation boundary lines from pre-processed CSV.
     
     Args:
         csv_file: Path to the correct CSV file (pre-processed)
         radius: Radius of the sphere
-        constellation: Constellation abbreviation (e.g., "AND") or None for all
+        constellations: Single constellation abbreviation (e.g., "AND"), 
+                       list of constellations (e.g., ["AND", "ORI", "UMA"]),
+                       or None for all
         color: Line color (default BLUE)
         stroke_width: Line width (default 2)
         verbose: Print debug information
@@ -303,43 +377,49 @@ def create_constellation_boundary_lines(csv_file="data_set/constellation_boundar
     """
     all_boundaries = load_constellation_boundaries_clean(csv_file)
     if stroke_width is None:
-        stroke_width = LINE_SIZE*radius/10000
+        stroke_width = LINE_SIZE*sphere_radius
     
-    # Filter by constellation if specified
-    if constellation:
-        # Use 'in' instead of 'startswith' to catch all variations
+    # Filter by constellation(s) if specified
+    if constellations:
+        # Convert single string to list for uniform handling
+        if isinstance(constellations, str):
+            constellations = [constellations]
+        
+        # Convert to uppercase for case-insensitive matching
+        constellations = [c.upper() for c in constellations]
+        
+        # Filter boundaries
         boundaries = [b for b in all_boundaries 
-                     if constellation in b['constellation']]
+                     if any(const in b['constellation'].upper() for const in constellations)]
+        
         if verbose:
-            print(f"Found {len(boundaries)} edges for '{constellation}'")
+            print(f"Found {len(boundaries)} edges for {constellations}")
     else:
         boundaries = all_boundaries
         if verbose:
             print(f"Loaded {len(boundaries)} total edges")
     
     if verbose:
-        constellations = set(b['constellation'] for b in boundaries)
-        print(f"Constellations in filtered set: {sorted(constellations)}")
+        constellations_found = set(b['constellation'] for b in boundaries)
+        print(f"Constellations in filtered set: {sorted(constellations_found)}")
     
     lines = Group()
     
     for boundary in boundaries:
-        points = create_boundary_edge(boundary, radius)
+        points = create_boundary_edge(boundary, sphere_radius)
         
         if len(points) < 2:
             continue
         
         for i in range(len(points) - 1):
-            line = Line3D(
+            line = Line(
                 points[i],
                 points[i + 1],
                 color=color,
-                width=stroke_width
-            )
+            ).set_stroke(width=stroke_width)
             lines.add(line)
     
     if verbose:
         print(f"Created {len(lines)} line segments")
     
     return lines
-
