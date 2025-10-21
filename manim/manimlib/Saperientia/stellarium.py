@@ -58,7 +58,7 @@ def color_index_to_hex(bv_index):
     return rgb_to_hex(rgb)
 
 
-def extract_star_data(file_path='data_set/sorted_hygdata_v41.csv'):
+def extract_star_data(file_path='data_set/sorted_hygdata_v41.csv',lat=0,lon=0):
     stars = []
 
     try:
@@ -94,6 +94,8 @@ def extract_star_data(file_path='data_set/sorted_hygdata_v41.csv'):
         x = 3.08e16 * row['x'] / MANIM_REAL_SCALE
         y = 3.08e16 * row['y'] / MANIM_REAL_SCALE
         z = 3.08e16 * row['z'] / MANIM_REAL_SCALE
+        
+        
 
         # if row['proper'] == 'Alnilam':
         #     print(x, y, z,theta,phi)
@@ -134,6 +136,8 @@ def Asterisms(
             time_years = 0,
             constellations = None,
             stroke_width = None,
+            lat=90,
+            lon=0,
             ):
     
     if stroke_width is None:
@@ -199,7 +203,7 @@ def Asterisms(
                     opacity=opacity,
                 ).set_stroke(width=stroke_width,opacity=opacity).set_z_index(-5).deactivate_depth_test()
                 lines.add(line)
-    
+    lines.rotate(lon*DEG,axis=OUT).rotate((lat-90)*DEG,axis=RIGHT,about_point=ORIGIN)
     return lines
 
 #Testar com Arc
@@ -212,6 +216,8 @@ def Stars(  sphere_mode = False,
             hr_mode = False,
             hr_mode_radius = False,
             time_years = 0,
+            lat=90,
+            lon=0,
             ):
     
     stars_data = extract_star_data()
@@ -280,6 +286,7 @@ def Stars(  sphere_mode = False,
                 opacity=opacity
             )
         stars.add(star)
+    stars.rotate(lon*DEG,axis=OUT).rotate((lat-90)*DEG,axis=RIGHT,about_point=ORIGIN)
     return stars
 
 
@@ -290,6 +297,7 @@ def load_constellation_boundaries_clean(csv_file="data_set/constellations.csv"):
     with open(csv_file, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
+            
             boundaries.append({
                 'vertex1_key': row['vertex1_key'],
                 'vertex2_key': row['vertex2_key'],
@@ -358,7 +366,7 @@ def create_boundary_edge(boundary, radius, num_points_dec=2,num_points_ra=8):
     return points
 
 def Constellations(csv_file="data_set/constellations.csv", sphere_radius=10000, constellations=None, 
-                   color=BLUE, stroke_width=None, verbose=False):
+                   color=BLUE, stroke_width=None, verbose=False,lat=90,lon=0):
     """
     Fast function to create constellation boundary lines from pre-processed CSV.
     
@@ -421,5 +429,5 @@ def Constellations(csv_file="data_set/constellations.csv", sphere_radius=10000, 
     
     if verbose:
         print(f"Created {len(lines)} line segments")
-    
+    lines.rotate(lon*DEG,axis=OUT).rotate((lat-90)*DEG,axis=RIGHT,about_point=ORIGIN)
     return lines

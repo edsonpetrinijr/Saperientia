@@ -397,9 +397,12 @@ class DevelopSky2(Scene):
         
 class TesteEstrelas(Scene):
     def construct(self):
-        self.frame.reorient(0,130,0,ORIGIN,1)
-        estrelas = Stars()
-        asterismos = Asterisms(sphere_radius=100000)
-        constela = Constellations(sphere_radius=100000)
+        self.frame.reorient(0,130,0,ORIGIN,20)
+        estrelas = Stars(lat=0)
+        asterismos = Asterisms(sphere_radius=10,lat=0)
+        constela = Constellations(sphere_radius=10,lat=0)
+        estrelas2 = Stars(lat=90)
+        asterismos2 = Asterisms(sphere_radius=10,lat=90)
+        constela2 = Constellations(sphere_radius=10,lat=90)
         
-        self.add(estrelas,constela,asterismos)
+        
